@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Sunlit Movies</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.10.3/cdn.min.js" defer></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #0a0a0a;
+            color: #ffffff;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        /* Solid color palette - no gradients */
+        .bg-primary { background: #0a0a0a; }
+        .bg-secondary { background: #141414; }
+        .bg-tertiary { background: #1f1f1f; }
+        .bg-card { background: #1a1a1a; }
+        .bg-card-hover { background: #252525; }
+        
+        .text-primary { color: #ffffff; }
+        .text-secondary { color: #a0a0a0; }
+        .text-muted { color: #666666; }
+        
+        .border-subtle { border-color: #2a2a2a; }
+        .border-hover { border-color: #3a3a3a; }
+        
+        .accent-blue { color: #3b82f6; }
+        .bg-accent { background: #3b82f6; }
+        .border-accent { border-color: #3b82f6; }
+        
+        /* Card styling */
+        .movie-card {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            transition: all 0.2s ease;
+        }
+        
+        .movie-card:hover {
+            background: #252525;
+            border-color: #3a3a3a;
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* Poster container */
+        .poster-container {
+            position: relative;
+            overflow: hidden;
+            background: #141414;
+        }
+        
+        .poster-img {
+            transition: transform 0.3s ease;
+        }
+        
+        .movie-card:hover .poster-img {
+            transform: scale(1.03);
+        }
+        
+        /* Play button */
+        .play-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .movie-card:hover .play-btn {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        
+        .play-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: #0a0a0a;
+            margin-left: 2px;
+        }
+        
+        /* Search input */
+        .search-container {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .search-input {
+            width: 100%;
+            background: #141414;
+            border: 1px solid #2a2a2a;
+            color: #ffffff;
+            padding: 14px 20px 14px 48px;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.2s ease;
+        }
+        
+        .search-input:hover {
+            border-color: #3a3a3a;
+            background: #1a1a1a;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: #1a1a1a;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666666;
+            pointer-events: none;
+        }
+        
+        .search-input:focus + .search-icon,
+        .search-container:focus-within .search-icon {
+            color: #3b82f6;
+        }
+        
+        /* Tab buttons */
+        .tab-btn {
+            background: #141414;
+            border: 1px solid #2a2a2a;
+            color: #a0a0a0;
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .tab-btn:hover {
+            background: #1a1a1a;
+            border-color: #3a3a3a;
+            color: #ffffff;
+        }
+        
+        .tab-btn.active {
+            background: #1a1a1a;
+            border-color: #3b82f6;
+            color: #ffffff;
+        }
+        
+        /* Pagination */
+        .page-btn {
+            background: #141414;
+            border: 1px solid #2a2a2a;
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .page-btn:hover:not(:disabled) {
+            background: #1a1a1a;
+            border-color: #3a3a3a;
+        }
+        
+        .page-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .page-indicator {
+            background: #141414;
+            border: 1px solid #2a2a2a;
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-weight: 600;
+            min-width: 100px;
+            text-align: center;
+        }
+        
+        /* Loading shimmer - flat colors only */
+        @keyframes shimmer {
+            0% { opacity: 0.4; }
+            50% { opacity: 0.8; }
+            100% { opacity: 0.4; }
+        }
+        
+        .shimmer {
+            background: #1f1f1f;
+            animation: shimmer 1.5s infinite ease-in-out;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #2a2a2a;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3a3a3a;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #0a0a0a;
+            border-top: 1px solid #1f1f1f;
+        }
+        
+        /* Rating star */
+        .star-icon {
+            color: #fbbf24;
+        }
+        
+        /* Title styling */
+        .site-title {
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+    </style>
+</head>
+<body class="min-h-screen" x-data="app()">
+    <div class="container mx-auto px-6 py-12 max-w-7xl">
+        <!-- Header -->
+        <div class="text-center mb-10">
+            <h1 class="site-title text-4xl md:text-5xl text-white mb-3">Sunlit Movies</h1>
+            <p class="text-secondary text-base">Browse and watch your favorite content</p>
+        </div>
+
+        <!-- Search Bar with Magnifying Glass -->
+        <div class="search-container mb-10">
+            <svg class="search-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            <input 
+                type="text" 
+                x-model="searchQuery" 
+                @input="searchContent()" 
+                placeholder="Search movies and shows..." 
+                class="search-input"
+            >
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="flex justify-center gap-3 mb-10 flex-wrap">
+            <button 
+                @click="currentTab = 'all'" 
+                :class="currentTab === 'all' ? 'active' : ''"
+                class="tab-btn"
+            >
+                All
+            </button>
+            <button 
+                @click="currentTab = 'movies'" 
+                :class="currentTab === 'movies' ? 'active' : ''"
+                class="tab-btn"
+            >
+                Movies
+            </button>
+            <button 
+                @click="currentTab = 'shows'" 
+                :class="currentTab === 'shows' ? 'active' : ''"
+                class="tab-btn"
+            >
+                TV Shows
+            </button>
+        </div>
+
+        <!-- Content Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 mb-12">
+            <template x-for="item in content" :key="item.id">
+                <div 
+                    @click="watchItem(item.id, item.media_type || currentTab)" 
+                    class="movie-card rounded-lg overflow-hidden cursor-pointer group"
+                >
+                    <div class="poster-container aspect-[2/3] relative">
+                        <img 
+                            :src="item.poster_path ? 'https://image.tmdb.org/t/p/w500' + item.poster_path : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22500%22 height=%22750%22%3E%3Crect width=%22500%22 height=%22750%22 fill=%22%23141414%22/%3E%3Ctext x=%22250%22 y=%22375%22 font-family=%22sans-serif%22 font-size=%2220%22 fill=%22%23666%22 text-anchor=%22middle%22%3ENo Poster%3C/text%3E%3C/svg%3E'" 
+                            :alt="item.title || item.name" 
+                            class="poster-img w-full h-full object-cover"
+                        >
+                        <div class="play-btn">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-white text-sm mb-1 line-clamp-1 leading-tight" x-text="item.title || item.name"></h3>
+                        <div class="flex items-center gap-2 text-xs text-secondary">
+                            <svg class="w-3.5 h-3.5 star-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                            </svg>
+                            <span x-text="(item.vote_average || 0).toFixed(1)"></span>
+                            <span class="text-muted">|</span>
+                            <span x-text="(item.release_date || item.first_air_date || '').substring(0, 4) || 'N/A'"></span>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <!-- Loading State -->
+        <div x-show="content.length === 0" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+            <template x-for="i in 10">
+                <div class="movie-card rounded-lg overflow-hidden">
+                    <div class="aspect-[2/3] shimmer"></div>
+                    <div class="p-3 space-y-2">
+                        <div class="h-4 shimmer rounded w-3/4"></div>
+                        <div class="h-3 shimmer rounded w-1/2"></div>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex justify-center items-center gap-3" x-show="content.length > 0">
+            <button 
+                @click="currentPage > 1 && changePage(currentPage - 1)" 
+                :disabled="currentPage === 1"
+                class="page-btn flex items-center gap-2"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                Prev
+            </button>
+            
+            <div class="page-indicator">
+                <span x-text="currentPage"></span>
+                <span class="text-muted text-sm">/ ∞</span>
+            </div>
+            
+            <button 
+                @click="changePage(currentPage + 1)"
+                class="page-btn flex items-center gap-2"
+            >
+                Next
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer mt-16 py-6 px-6 text-center">
+        <p class="text-muted text-xs">
+            NoOneBrowser does not host or upload any videos. All content is provided by third-party embedding services.
+            <a href="/credits.html" class="text-secondary hover:text-white transition-colors ml-2">Credits</a>
+        </p>
+    </div>
+
+    <script>
+        function app() {
+            return {
+                apiKey: 'fb7bb23f03b6994dafc674c074d01761',
+                content: [],
+                currentTab: 'all',
+                currentPage: 1,
+                searchQuery: '',
+                isLoading: true,
+
+                async init() {
+                    await this.fetchContent();
+                    this.$watch('currentTab', async () => {
+                        this.currentPage = 1;
+                        this.searchQuery = '';
+                        await this.fetchContent();
+                    });
+                },
+
+                async searchContent() {
+                    if (!this.searchQuery.trim()) {
+                        await this.fetchContent();
+                        return;
+                    }
+                    
+                    this.isLoading = true;
+                    
+                    if (this.currentTab === 'all') {
+                        const movieUrl = `https://api.themoviedb.org/3/search/movie?api_key=${this.apiKey}&query=${encodeURIComponent(this.searchQuery)}&page=${this.currentPage}`;
+                        const tvUrl = `https://api.themoviedb.org/3/search/tv?api_key=${this.apiKey}&query=${encodeURIComponent(this.searchQuery)}&page=${this.currentPage}`;
+                        
+                        try {
+                            const [movieRes, tvRes] = await Promise.all([fetch(movieUrl), fetch(tvUrl)]);
+                            const movieData = await movieRes.json();
+                            const tvData = await tvRes.json();
+                            
+                            let allResults = [...movieData.results, ...tvData.results];
+                            allResults = allResults.map(item => {
+                                item.media_type = item.title ? 'movie' : 'tv';
+                                return item;
+                            });
+                            this.content = allResults;
+                        } catch (error) {
+                            console.error('Search error:', error);
+                        }
+                    } else {
+                        const endpoint = this.currentTab === 'movies' ? 'movie' : 'tv';
+                        const url = `https://api.themoviedb.org/3/search/${endpoint}?api_key=${this.apiKey}&query=${encodeURIComponent(this.searchQuery)}&page=${this.currentPage}`;
+                        try {
+                            const response = await fetch(url);
+                            const data = await response.json();
+                            this.content = data.results.map(item => {
+                                item.media_type = this.currentTab === 'movies' ? 'movie' : 'tv';
+                                return item;
+                            });
+                        } catch (error) {
+                            console.error('Search error:', error);
+                        }
+                    }
+                    
+                    this.isLoading = false;
+                },
+
+                async fetchContent() {
+                    this.isLoading = true;
+                    
+                    if (this.currentTab === 'all') {
+                        const movieUrl = `https://api.themoviedb.org/3/movie/popular?api_key=${this.apiKey}&page=${this.currentPage}`;
+                        const tvUrl = `https://api.themoviedb.org/3/tv/popular?api_key=${this.apiKey}&page=${this.currentPage}`;
+                        
+                        try {
+                            const [movieRes, tvRes] = await Promise.all([fetch(movieUrl), fetch(tvUrl)]);
+                            const movieData = await movieRes.json();
+                            const tvData = await tvRes.json();
+                            
+                            let allResults = [...movieData.results, ...tvData.results];
+                            allResults = allResults.map(item => {
+                                item.media_type = item.title ? 'movie' : 'tv';
+                                return item;
+                            });
+                            this.content = allResults;
+                        } catch (error) {
+                            console.error('Fetch error:', error);
+                        }
+                    } else {
+                        const endpoint = this.currentTab === 'movies' ? 'movie/popular' : 'tv/popular';
+                        const url = `https://api.themoviedb.org/3/${endpoint}?api_key=${this.apiKey}&page=${this.currentPage}`;
+                        try {
+                            const response = await fetch(url);
+                            const data = await response.json();
+                            this.content = data.results.map(item => {
+                                item.media_type = this.currentTab === 'movies' ? 'movie' : 'tv';
+                                return item;
+                            });
+                        } catch (error) {
+                            console.error('Fetch error:', error);
+                        }
+                    }
+                    
+                    this.isLoading = false;
+                },
+
+                async changePage(page) {
+                    this.currentPage = page;
+                    if (this.searchQuery.trim()) {
+                        await this.searchContent();
+                    } else {
+                        await this.fetchContent();
+                    }
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                },
+
+                watchItem(id, type) {
+                    let mediaType = type;
+                    if (type === 'all') {
+                        const item = this.content.find(i => i.id == id);
+                        mediaType = item?.media_type === 'movie' ? 'movie' : 'tv';
+                    }
+                    const url = `watch.html?id=${id}&type=${mediaType === 'movies' ? 'movie' : mediaType}`;
+                    window.location.href = url;
+                }
+            }
+        }
+    </script>
+</body>
+</html>
