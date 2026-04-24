@@ -186,15 +186,13 @@ function setLoadTimeout(tab, timeout = 20000) {
 }
 
 function attachTabContent(tab) {
-  if (!tab.frame.isConnected) contentDiv.appendChild(tab.frame);
-  if (!tab.newtab.isConnected) contentDiv.appendChild(tab.newtab);
+  // No-op: iframes stay in DOM
 }
 
 function detachTabContent(tab) {
   tab.frame.classList.remove('active');
   tab.newtab.classList.remove('active');
-  if (tab.frame.isConnected) tab.frame.remove();
-  if (tab.newtab.isConnected) tab.newtab.remove();
+  // Keep in DOM to avoid reloads
 }
 
 function switchTab(id) {
