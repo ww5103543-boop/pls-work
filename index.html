@@ -3,13 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Sunlit</title>
+  <title>orbital shell</title>
   <link rel="icon" href="data:,">
   
-  <meta http-equiv="Content-Security-Policy" content="frame-src * https: http:; default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob:; style-src * 'unsafe-inline';">
-
-  <script src="/ximplesc/ximple.mjs" type="module" id="ximple-module"></script>
-
   <style>
     * {
       margin: 0;
@@ -19,21 +15,20 @@
     }
 
     :root {
-      --bg: #0a0a0a;
-      --chrome-bg: rgba(12, 12, 16, 0.92);
-      --chrome-border: rgba(255, 255, 255, 0.07);
-      --tab-bg: rgba(255, 255, 255, 0.04);
-      --tab-active-bg: rgba(255, 255, 255, 0.1);
-      --tab-active-border: rgba(255, 255, 255, 0.2);
-      --text: #b0b0b8;
-      --text-dim: #6e6e7a;
-      --text-bright: #ffffff;
+      --bg-dark: #0b0b10;
+      --chrome-bg: rgba(8, 8, 12, 0.94);
+      --border-faint: rgba(230, 230, 250, 0.05);
+      --tab-bg: rgba(20, 20, 28, 0.7);
+      --tab-active: #1e1e2c;
+      --text-soft: #d6d6e3;
+      --text-dim: #77778a;
+      --glow: #9c9cdd;
     }
 
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-soft);
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, monospace;
       height: 100vh;
       display: flex;
       flex-direction: column;
@@ -44,221 +39,215 @@
       position: fixed;
       inset: 0;
       z-index: 9999;
-      background: var(--bg);
+      background: #040408;
     }
 
-    body.fullscreen-mode #tab-container,
-    body.fullscreen-mode #toolbar {
+    body.fullscreen-mode #tab-shell,
+    body.fullscreen-mode #toolbar-solid {
       display: none;
     }
 
-    body.fullscreen-mode #web-container {
+    body.fullscreen-mode #web-canvas {
       position: fixed;
       inset: 0;
       z-index: 10000;
     }
 
-    #exit-fullscreen-overlay {
+    #fs-exit-zone {
       position: fixed;
       top: 0;
       left: 0;
-      width: 80px;
-      height: 80px;
+      width: 72px;
+      height: 72px;
       z-index: 10001;
       opacity: 0;
-      transition: opacity 0.2s ease;
+      transition: opacity 0.2s;
       pointer-events: none;
     }
 
-    body.fullscreen-mode #exit-fullscreen-overlay {
+    body.fullscreen-mode #fs-exit-zone {
       pointer-events: auto;
     }
 
-    #exit-fullscreen-overlay:hover {
+    #fs-exit-zone:hover {
       opacity: 1;
     }
 
-    #exit-fullscreen-btn {
+    #fs-exit-btn {
       position: absolute;
-      top: 12px;
-      left: 12px;
-      width: 36px;
-      height: 36px;
-      background: rgba(12, 12, 16, 0.95);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 10px;
-      color: var(--text-bright);
+      top: 14px;
+      left: 14px;
+      width: 38px;
+      height: 38px;
+      background: rgba(18, 18, 24, 0.96);
+      backdrop-filter: blur(18px);
+      border: 0.5px solid rgba(210, 210, 250, 0.25);
+      border-radius: 12px;
+      color: #ddddff;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
-      transition: all 0.2s ease;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      font-size: 20px;
+      font-weight: 500;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
     }
 
-    #exit-fullscreen-btn:hover {
-      background: rgba(255, 255, 255, 0.2);
-      transform: scale(1.05);
-    }
-
-    #tab-container {
+    #tab-shell {
       background: var(--chrome-bg);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(255,255,255,0.07);
-      padding: 6px 8px;
+      backdrop-filter: blur(24px);
+      border-bottom: 0.5px solid var(--border-faint);
+      padding: 5px 8px;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
       overflow-x: auto;
       flex-shrink: 0;
     }
 
-    .tab {
+    .tab-card {
       display: flex;
       align-items: center;
       gap: 8px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.05);
-      border-radius: 10px;
-      padding: 0 12px;
-      height: 34px;
-      min-width: 130px;
+      background: var(--tab-bg);
+      border: 0.5px solid rgba(210, 210, 255, 0.08);
+      border-radius: 12px;
+      padding: 0 10px;
+      height: 32px;
+      min-width: 120px;
       cursor: pointer;
       user-select: none;
+      transition: all 0.08s linear;
     }
 
-    .tab.active {
-      background: rgba(255,255,255,0.1);
-      border-color: rgba(255,255,255,0.2);
+    .tab-card.active {
+      background: var(--tab-active);
+      border-color: rgba(160, 160, 220, 0.3);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.3);
     }
 
-    .tab.active .tab-title {
-      color: var(--text-bright);
+    .tab-card.active .tab-label {
+      color: #f0f0ff;
     }
 
-    .tab-title {
+    .tab-label {
       flex: 1;
-      font-size: 12px;
-      color: var(--text-dim);
+      font-size: 11px;
+      font-weight: 450;
+      letter-spacing: -0.2px;
+      color: #b2b2c4;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
-    .tab-icon {
+    .tab-fav {
       width: 16px;
       height: 16px;
       flex-shrink: 0;
       border-radius: 3px;
       object-fit: contain;
-      background: rgba(255,255,255,0.06);
+      background: rgba(255,255,200,0.04);
     }
 
-    .tab-close {
-      width: 21px;
-      height: 21px;
+    .tab-close-btn {
+      width: 20px;
+      height: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 5px;
-      font-size: 12px;
+      border-radius: 6px;
+      font-size: 11px;
       cursor: pointer;
       flex-shrink: 0;
+      color: #9a9ab0;
     }
 
-    .tab-close:hover {
-      background: rgba(255,255,255,0.12);
-      color: white;
+    .tab-close-btn:hover {
+      background: rgba(255, 60, 80, 0.25);
+      color: #ffb7b7;
     }
 
-    #new-tab-btn {
-      width: 25px;
-      height: 25px;
+    #add-tab {
+      width: 26px;
+      height: 26px;
       background: transparent;
       border: none;
-      border-radius: 5px;
-      color: var(--text-dim);
-      font-size: 20px;
+      border-radius: 8px;
+      color: #b0b0cc;
+      font-size: 22px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      line-height: 1;
       flex-shrink: 0;
     }
 
-    #new-tab-btn:hover {
-      background: rgba(255,255,255,0.08);
-      color: white;
+    #add-tab:hover {
+      background: rgba(255,255,255,0.06);
+      color: #e3e3ff;
     }
 
-    #toolbar {
+    #toolbar-solid {
       display: flex;
       align-items: center;
       gap: 6px;
-      padding: 6px 10px;
-      background: rgba(10, 10, 10, 0.85);
+      padding: 6px 12px;
+      background: rgba(6, 6, 10, 0.85);
       backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+      border-bottom: 0.5px solid rgba(220, 220, 245, 0.06);
       flex-shrink: 0;
     }
 
-    .nav-icon {
-      width: 30px;
-      height: 30px;
+    .nav-pill {
+      width: 32px;
+      height: 32px;
       display: flex;
       align-items: center;
       justify-content: center;
       background: transparent;
       border: none;
-      border-radius: 7px;
-      color: var(--text-dim);
+      border-radius: 9px;
+      color: #aaaaC5;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 15px;
     }
 
-    .nav-icon:hover {
-      background: rgba(255,255,255,0.07);
-      color: white;
+    .nav-pill:hover {
+      background: rgba(220, 220, 250, 0.07);
+      color: #f0f0ff;
     }
 
-    #url-wrapper {
+    #address-field {
       flex: 1;
       display: flex;
       align-items: center;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 9px;
-      padding: 0 12px;
-      gap: 7px;
+      background: rgba(16, 16, 24, 0.7);
+      border: 0.5px solid rgba(200, 200, 240, 0.12);
+      border-radius: 44px;
+      padding: 0 14px;
+      gap: 8px;
     }
 
-    #url-input {
+    #url-raw {
       flex: 1;
       background: transparent;
       border: none;
       outline: none;
-      color: var(--text-bright);
+      color: #eeeef5;
       font-size: 13px;
-      padding: 7px 0;
+      font-family: monospace;
+      padding: 8px 0;
     }
 
-    #url-input:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+    #loading-spinner {
+      animation: spin 0.55s linear infinite;
+      opacity: 0.7;
     }
 
-    #url-wrapper .loading-icon {
-      animation: spin 0.45s linear infinite;
-      opacity: 1;
-      transition: opacity 0.2s;
-    }
-
-    #url-wrapper .loading-icon.hidden {
-      opacity: 0;
-      pointer-events: none;
+    .hide-spinner {
+      display: none;
     }
 
     @keyframes spin {
@@ -266,769 +255,656 @@
       to { transform: rotate(360deg); }
     }
 
-    #fullscreen-btn {
-      width: 30px;
-      height: 30px;
+    #fs-toggle {
+      width: 32px;
+      height: 32px;
       background: transparent;
       border: none;
-      border-radius: 7px;
-      color: var(--text-dim);
+      border-radius: 9px;
+      color: #aaaaC5;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
+      font-size: 17px;
     }
 
-    #fullscreen-btn:hover {
-      background: rgba(255,255,255,0.07);
-      color: white;
-    }
-
-    #menu-dots {
-      width: 30px;
-      height: 30px;
+    #menu-dotz {
+      width: 32px;
+      height: 32px;
       background: transparent;
       border: none;
-      color: var(--text-dim);
-      font-size: 20px;
+      color: #aaaaC5;
+      font-size: 22px;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      line-height: 1;
     }
 
-    #web-container {
+    #web-canvas {
       flex: 1;
       position: relative;
-      background: #0f0f12;
+      background: #010105;
       overflow: hidden;
       min-height: 0;
     }
 
-    .new-tab-page {
+    .new-tab-overlay {
       position: absolute;
       inset: 0;
       display: none;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      background: radial-gradient(circle at 30% 20%, #0a0a14, #000000);
     }
 
-    .new-tab-page.active {
+    .new-tab-overlay.active {
       display: flex;
     }
 
-    .nt-greeting {
-      font-size: 32px;
-      font-weight: 600;
-      background: linear-gradient(135deg, #eaeef5, #b0b0c8);
+    .greeting-text {
+      font-size: 36px;
+      font-weight: 480;
+      font-family: monospace;
+      background: linear-gradient(125deg, #ccccee, #a0a0ca);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
+      letter-spacing: -0.5px;
     }
 
-    .nt-search-area {
+    .search-zone {
       width: 80%;
-      max-width: 500px;
-      margin-top: 20px;
+      max-width: 540px;
+      margin-top: 24px;
     }
 
-    .nt-search {
+    .search-field-custom {
       width: 100%;
-      background: rgba(22,22,30,0.8);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 44px;
+      background: #111117;
+      border: 0.5px solid #2b2b38;
+      border-radius: 60px;
       padding: 12px 20px;
-      color: white;
+      color: #eef;
       font-size: 14px;
       outline: none;
+      font-family: monospace;
     }
 
-    .nt-search:focus {
-      border-color: rgba(255,255,255,0.18);
+    .search-field-custom:focus {
+      border-color: #6b6b9e;
     }
 
-    .browser-frame {
+    .browser-sheet {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
       border: none;
       display: none;
+      background: #fff;
     }
 
-    .browser-frame.active {
+    .browser-sheet.active {
       display: block;
     }
 
-    #dropdown-menu {
+    #menu-panel {
       position: fixed;
-      top: 92px;
-      right: 12px;
-      background: rgba(12,12,12,0.98);
-      backdrop-filter: blur(24px);
-      border: 1px solid rgba(255,255,255,0.09);
-      border-radius: 11px;
-      padding: 5px;
-      min-width: 200px;
-      z-index: 2000;
+      top: 88px;
+      right: 14px;
+      background: rgba(12, 12, 18, 0.98);
+      backdrop-filter: blur(28px);
+      border: 0.5px solid rgba(210, 210, 240, 0.1);
+      border-radius: 20px;
+      padding: 6px;
+      min-width: 210px;
+      z-index: 2100;
       display: none;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.6);
     }
 
-    #dropdown-menu.open {
+    #menu-panel.open-menu {
       display: block;
     }
 
-    .dd-item {
+    .menu-item {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 8px 10px;
-      border-radius: 7px;
+      gap: 12px;
+      padding: 8px 12px;
+      border-radius: 14px;
       font-size: 13px;
-      color: var(--text);
+      color: #cacae0;
       cursor: pointer;
       width: 100%;
       background: transparent;
       border: none;
+      font-family: monospace;
     }
 
-    .dd-item:hover {
-      background: rgba(255,255,255,0.07);
+    .menu-item:hover {
+      background: rgba(210, 210, 250, 0.07);
       color: white;
     }
 
-    .dd-sub {
+    .menu-check {
       margin-left: auto;
-      font-size: 11px;
+      font-size: 12px;
     }
 
-    .dd-sep {
+    .menu-divider {
       height: 1px;
-      background: rgba(255,255,255,0.07);
-      margin: 4px 0;
+      background: rgba(210,210,240,0.08);
+      margin: 6px 0;
     }
 
-    .modal-bg {
+    .modal-overlay {
       position: fixed;
       inset: 0;
       background: rgba(0,0,0,0.8);
-      backdrop-filter: blur(12px);
+      backdrop-filter: blur(14px);
       z-index: 3000;
       display: none;
       align-items: center;
       justify-content: center;
     }
 
-    .modal-bg.open {
+    .modal-overlay.open {
       display: flex;
     }
 
-    .modal-card {
-      background: #14141c;
-      border: 1px solid #2c2c38;
-      border-radius: 28px;
+    .pref-window {
+      background: #111118;
+      border: 0.5px solid #2f2f3c;
+      border-radius: 32px;
       padding: 28px;
       width: 340px;
     }
 
-    .modal-card h3 {
-      color: white;
+    .pref-window h3 {
+      color: #e2e2f0;
+      margin-bottom: 20px;
+      font-weight: 480;
+    }
+
+    .pref-row {
       margin-bottom: 20px;
     }
 
-    .settings-row {
-      margin-bottom: 20px;
-    }
-
-    .settings-row label {
-      font-size: 11px;
-      color: #8e8e9e;
+    .pref-row label {
+      font-size: 10px;
+      color: #8f8fa8;
       display: block;
       margin-bottom: 6px;
+      letter-spacing: 0.3px;
     }
 
-    .settings-row input,
-    .settings-row select {
+    .pref-row input,
+    .pref-row select {
       width: 100%;
-      background: #20202a;
-      border: 1px solid #343440;
-      border-radius: 14px;
+      background: #1c1c26;
+      border: 0.5px solid #38384a;
+      border-radius: 18px;
       padding: 10px 14px;
-      color: white;
+      color: #ececff;
       font-family: monospace;
       outline: none;
     }
 
-    .settings-row select {
-      font-family: inherit;
-      cursor: pointer;
-    }
-
-    .modal-buttons {
+    .action-buttons {
       display: flex;
       gap: 12px;
       margin-top: 24px;
     }
 
-    .modal-btn {
+    .action-btn {
       flex: 1;
-      background: #2a2a36;
+      background: #242432;
       border: none;
       padding: 10px;
-      border-radius: 30px;
-      color: white;
+      border-radius: 40px;
+      color: #ddddff;
       cursor: pointer;
     }
 
-    .modal-btn:hover {
-      background: #383848;
+    .action-btn:hover {
+      background: #35354a;
     }
 
-    .toast-msg {
+    .toast-fly {
       position: fixed;
-      bottom: 24px;
+      bottom: 28px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(28, 28, 38, 0.9);
-      backdrop-filter: blur(16px);
-      padding: 8px 20px;
-      border-radius: 40px;
+      background: #1a1a24e6;
+      backdrop-filter: blur(20px);
+      padding: 6px 18px;
+      border-radius: 80px;
       font-size: 12px;
+      font-family: monospace;
       opacity: 0;
       transition: opacity 0.2s;
       pointer-events: none;
       z-index: 4000;
-      color: var(--text-bright);
+      color: #ddddf5;
     }
 
-    .toast-msg.show {
+    .toast-fly.show-toast {
       opacity: 1;
     }
   </style>
-<base target="_blank">
 </head>
 <body>
 
-  <div id="exit-fullscreen-overlay">
-    <button id="exit-fullscreen-btn" title="Exit Fullscreen">✕</button>
+  <div id="fs-exit-zone">
+    <button id="fs-exit-btn" title="exit full">✕</button>
   </div>
 
-  <div id="tab-container">
-    <button id="new-tab-btn">+</button>
+  <div id="tab-shell">
+    <button id="add-tab">+</button>
   </div>
 
-  <div id="toolbar">
-    <button class="nav-icon" id="back-btn" title="Back">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-    </button>
-    <button class="nav-icon" id="forward-btn" title="Forward">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-    </button>
-    <button class="nav-icon" id="reload-btn" title="Reload">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
-    </button>
-    <div id="url-wrapper">
-      <input id="url-input" type="text" placeholder="Search or enter URL..." autocomplete="off" spellcheck="false">
-      <svg class="loading-icon hidden" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <div id="toolbar-solid">
+    <button class="nav-pill" id="nav-back" title="back">←</button>
+    <button class="nav-pill" id="nav-forward" title="forward">→</button>
+    <button class="nav-pill" id="nav-reload" title="renew">↻</button>
+    <div id="address-field">
+      <input id="url-raw" type="text" placeholder="search / address" autocomplete="off" spellcheck="false">
+      <svg id="loading-spinner" class="hide-spinner" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
         <path d="M21 12a9 9 0 11-6.219-8.56"/>
       </svg>
     </div>
-    <button id="fullscreen-btn" title="Fullscreen">⛶</button>
-    <button id="menu-dots">&#8942;</button>
+    <button id="fs-toggle" title="full">⛶</button>
+    <button id="menu-dotz">⋯</button>
   </div>
 
-  <div id="web-container"></div>
+  <div id="web-canvas"></div>
 
-  <div id="dropdown-menu">
-    <button class="dd-item" id="dd-duck">DuckDuckGo <span class="dd-sub" id="duck-check">&#10003;</span></button>
-    <button class="dd-item" id="dd-brave">Brave Search <span class="dd-sub" id="brave-check"></span></button>
-    <div class="dd-sep"></div>
-    <button class="dd-item" id="dd-settings">Settings</button>
+  <div id="menu-panel">
+    <button class="menu-item" id="engine-dd">DuckDuckGo <span class="menu-check" id="ddg-mark">✓</span></button>
+    <button class="menu-item" id="engine-brave">Brave Search <span class="menu-check" id="brave-mark"></span></button>
+    <div class="menu-divider"></div>
+    <button class="menu-item" id="open-settings">⚙️ preferences</button>
   </div>
 
-  <div id="settings-modal" class="modal-bg">
-    <div class="modal-card">
-      <h3>Settings</h3>
-      <div class="settings-row">
-        <label>Wisp Server</label>
-        <input id="wisp-url" type="text" placeholder="wss://wisp.waved.site/">
+  <div id="global-modal" class="modal-overlay">
+    <div class="pref-window">
+      <h3>tuning</h3>
+      <div class="pref-row">
+        <label>wisp endpoint</label>
+        <input id="wisp-endpoint" type="text" placeholder="wss://wisp.waved.site/">
       </div>
-      <div class="settings-row">
-        <label>Transport</label>
-        <select id="transport-select">
+      <div class="pref-row">
+        <label>transport</label>
+        <select id="transport-type">
           <option value="libcurl">libcurl</option>
           <option value="epoxy">epoxy</option>
         </select>
       </div>
-      <div class="modal-buttons">
-        <button class="modal-btn" id="close-settings">Cancel</button>
-        <button class="modal-btn" id="save-settings">Save</button>
+      <div class="action-buttons">
+        <button class="action-btn" id="cancel-modal">cancel</button>
+        <button class="action-btn" id="save-modal">save</button>
       </div>
     </div>
   </div>
 
-  <div id="toast-message" class="toast-msg"></div>
+  <div id="toast-fly" class="toast-fly"></div>
+
+  <script src="/ximplesc/ximple.mjs" type="module" id="ximple-module"></script>
 
   <script>
-    // --- FAST, NON-BLOCKING PROXY INIT ---
-    
-    let proxyModule = null;
-    let proxyReady = false;
-    let proxyInitPromise = null;
-    let toastTimer = null;
-    const toastEl = document.getElementById('toast-message');
+    // --- proxy glue: non-blocking bootstrap ---
+    let proxyLib = null;
+    let proxyLive = false;
+    let proxyBootPromise = null;
+    let toastTimeout = null;
+    const toastDiv = document.getElementById('toast-fly');
 
-    function showToast(msg, duration = 1800) {
-      if (!toastEl) return;
-      toastEl.textContent = msg;
-      toastEl.classList.add('show');
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => toastEl.classList.remove('show'), duration);
+    function notify(msg, duration = 1600) {
+      if (!toastDiv) return;
+      toastDiv.textContent = msg;
+      toastDiv.classList.add('show-toast');
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => toastDiv.classList.remove('show-toast'), duration);
     }
 
-    // Enable UI immediately - no waiting for proxy
-    const urlInput = document.getElementById('url-input');
-    const loadingIcon = document.querySelector('.loading-icon');
-    if (urlInput) urlInput.disabled = false;
-    if (loadingIcon) loadingIcon.classList.add('hidden');
+    const urlField = document.getElementById('url-raw');
+    const spinnerIcon = document.getElementById('loading-spinner');
+    if (urlField) urlField.disabled = false;
+    if (spinnerIcon) spinnerIcon.classList.add('hide-spinner');
 
-    async function initProxy() {
-      if (proxyInitPromise) return proxyInitPromise;
-      if (proxyReady) return proxyModule;
+    async primeProxy() {
+      if (proxyBootPromise) return proxyBootPromise;
+      if (proxyLive) return proxyLib;
 
-      proxyInitPromise = (async () => {
+      proxyBootPromise = (async () => {
         try {
-          const m = await import("/ximplesc/ximple.mjs");
-          proxyModule = m;
-
-          const w = localStorage.getItem('wispServer') || "wss://wisp.waved.site/";
-          const t = localStorage.getItem('transport') || "libcurl";
-
-          // Parallel config, not sequential
+          const mod = await import("/ximplesc/ximple.mjs");
+          proxyLib = mod;
+          const wispStore = localStorage.getItem('wisp_custom') || "wss://wisp.waved.site/";
+          const transportStore = localStorage.getItem('transport_mode') || "libcurl";
           await Promise.all([
-            m.setWisp?.(w).catch(() => {}),
-            m.setTransport?.(t).catch(() => {})
+            mod.setWisp?.(wispStore).catch(()=>{}),
+            mod.setTransport?.(transportStore).catch(()=>{})
           ]);
-
-          proxyReady = true;
-          showToast('Proxy ready', 1200);
-          console.log("[sunlit] proxy initialized");
-          return m;
+          proxyLive = true;
+          notify("proxy live", 1100);
+          return mod;
         } catch(e) {
-          console.error("[sunlit] proxy init failed:", e);
-          showToast('Proxy failed to load', 3000);
+          console.warn("proxy fail", e);
+          notify("proxy error", 2200);
           throw e;
         }
       })();
+      return proxyBootPromise;
+    }
+    primeProxy();
 
-      return proxyInitPromise;
+    window.__proxyReady = () => proxyLive;
+    window.__getProxyLib = () => proxyLib;
+    window.__notify = notify;
+
+    // ---- helpers ----
+    function getProxiedUrlSync(rawUrl) {
+      if (!proxyLive || !proxyLib?.getProxiedSync) throw new Error("proxy unready");
+      return proxyLib.getProxiedSync(rawUrl);
+    }
+    async function getProxiedUrlAsync(rawUrl) {
+      if (!proxyLive) await primeProxy();
+      if (!proxyLib?.getProxied) throw new Error("proxy unavailable");
+      return proxyLib.getProxied(rawUrl);
+    }
+    async function updateWisp(url) {
+      if (!proxyLive) await primeProxy();
+      if (proxyLib?.setWisp) return proxyLib.setWisp(url);
+    }
+    async function updateTransport(t) {
+      if (!proxyLive) await primeProxy();
+      if (proxyLib?.setTransport) return proxyLib.setTransport(t);
     }
 
-    // Start loading in background immediately
-    initProxy();
+    // --- browser state ---
+    let allTabs = [];
+    let currentTabId = null;
+    let nextTabId = 1;
+    let activeEngine = localStorage.getItem('enginePref') || 'duckduckgo';
+    let fullActive = false;
 
-    window.proxyModule = () => proxyModule;
-    window.proxyReady = () => proxyReady;
-    window.initProxy = initProxy;
-    window.showToast = showToast;
-  </script>
+    const tabContainer = document.getElementById('tab-shell');
+    const newTabButton = document.getElementById('add-tab');
+    const webRoot = document.getElementById('web-canvas');
+    const backButton = document.getElementById('nav-back');
+    const forwardButton = document.getElementById('nav-forward');
+    const reloader = document.getElementById('nav-reload');
+    const fullToggle = document.getElementById('fs-toggle');
+    const fsExitBtn = document.getElementById('fs-exit-btn');
+    const menuPanel = document.getElementById('menu-panel');
+    const ddgOption = document.getElementById('engine-dd');
+    const braveOption = document.getElementById('engine-brave');
+    const ddgMarkSpan = document.getElementById('ddg-mark');
+    const braveMarkSpan = document.getElementById('brave-mark');
+    const settingsBtn = document.getElementById('open-settings');
+    const modalBg = document.getElementById('global-modal');
+    const wispInputModal = document.getElementById('wisp-endpoint');
+    const transportSelectModal = document.getElementById('transport-type');
+    const cancelModal = document.getElementById('cancel-modal');
+    const saveModal = document.getElementById('save-modal');
 
-  <script type="module">
-    async function getProxied(url) {
-      if (!window.proxyReady()) await window.initProxy();
-      const module = window.proxyModule();
-      if (!module?.getProxied) throw new Error("Proxy not available");
-      return module.getProxied(url);
+    function showMsg(m) { notify(m, 1500); }
+
+    function getEnginePlaceholder() {
+      return activeEngine === 'brave' ? 'brave search or web address' : 'duckduckgo / url';
     }
 
-    function getProxiedSync(url) {
-      if (!window.proxyReady() || !window.proxyModule()?.getProxiedSync) throw new Error("Proxy not ready");
-      return window.proxyModule().getProxiedSync(url);
+    function resolveDestination(input) {
+      let str = input.trim();
+      if (!str) return null;
+      if (/^https?:\/\//i.test(str)) return str;
+      if (/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(str) && !str.includes(' ')) return 'https://' + str;
+      if (activeEngine === 'brave') return 'https://search.brave.com/search?q=' + encodeURIComponent(str);
+      return 'https://duckduckgo.com/?q=' + encodeURIComponent(str);
     }
 
-    async function setWisp(url) {
-      if (!window.proxyReady()) await window.initProxy();
-      const module = window.proxyModule();
-      if (module?.setWisp) return module.setWisp(url);
-    }
-
-    async function setTransport(t) {
-      if (!window.proxyReady()) await window.initProxy();
-      const module = window.proxyModule();
-      if (module?.setTransport) return module.setTransport(t);
-    }
-
-    const tabContainer = document.getElementById('tab-container');
-    const newTabBtn = document.getElementById('new-tab-btn');
-    const contentDiv = document.getElementById('web-container');
-    const urlInput = document.getElementById('url-input');
-    const backBtn = document.getElementById('back-btn');
-    const forwardBtn = document.getElementById('forward-btn');
-    const reloadBtn = document.getElementById('reload-btn');
-    const menuBtn = document.getElementById('menu-dots');
-    const fullscreenBtn = document.getElementById('fullscreen-btn');
-    const exitFullscreenBtn = document.getElementById('exit-fullscreen-btn');
-    const dropdown = document.getElementById('dropdown-menu');
-    const ddDuck = document.getElementById('dd-duck');
-    const ddBrave = document.getElementById('dd-brave');
-    const duckCheck = document.getElementById('duck-check');
-    const braveCheck = document.getElementById('brave-check');
-    const ddSettings = document.getElementById('dd-settings');
-    const settingsModal = document.getElementById('settings-modal');
-    const wispInput = document.getElementById('wisp-url');
-    const transportSelect = document.getElementById('transport-select');
-    const closeSettingsBtn = document.getElementById('close-settings');
-    const saveSettingsBtn = document.getElementById('save-settings');
-    const toastEl = document.getElementById('toast-message');
-    const loadingIcon = document.querySelector('.loading-icon');
-
-    let tabs = [];
-    let activeTabId = null;
-    let tabCounter = 0;
-    let searchEngine = localStorage.getItem('searchEngine') || 'duckduckgo';
-    let toastTimer = null;
-    let isFullscreen = false;
-
-    function showToast(msg, duration = 1800) {
-      if (!toastEl) return;
-      toastEl.textContent = msg;
-      toastEl.classList.add('show');
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => { toastEl.classList.remove('show'); }, duration);
-    }
-
-    function toggleFullscreen() {
-      if (!isFullscreen) {
-        document.body.classList.add('fullscreen-mode');
-        fullscreenBtn.textContent = '✕';
-        fullscreenBtn.title = 'Exit Fullscreen';
-        isFullscreen = true;
-        showToast('Fullscreen mode enabled', 1500);
-      } else {
-        document.body.classList.remove('fullscreen-mode');
-        fullscreenBtn.textContent = '⛶';
-        fullscreenBtn.title = 'Fullscreen';
-        isFullscreen = false;
-        showToast('Fullscreen mode disabled', 1500);
-      }
-    }
-
-    function exitFullscreen() {
-      if (isFullscreen) {
-        document.body.classList.remove('fullscreen-mode');
-        fullscreenBtn.textContent = '⛶';
-        fullscreenBtn.title = 'Fullscreen';
-        isFullscreen = false;
-        showToast('Fullscreen mode disabled', 1500);
-      }
-    }
-
-    function escapeHtml(str) {
-      if (!str) return '';
-      return str.replace(/[&<>'"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));
-    }
-
-    function getSearchPlaceholder() {
-      return searchEngine === 'brave' ? 'Search Brave or enter URL...' : 'Search DuckDuckGo or enter URL...';
-    }
-
-    function buildDestUrl(raw) {
-      let s = raw.trim();
-      if (!s) return null;
-      if (/^https?:\/\//i.test(s)) return s;
-      if (/^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/.test(s) && !s.includes(' ')) return 'https://' + s;
-      return searchEngine === 'brave'
-        ? 'https://search.brave.com/search?q=' + encodeURIComponent(s)
-        : 'https://duckduckgo.com/?q=' + encodeURIComponent(s);
-    }
-
-    function getTabIconUrl(tab) {
-      const u = tab.destUrl || tab.displayUrl || '';
+    function getFaviconIcon(urlString) {
       try {
-        const host = new URL(u).hostname;
-        if (host) return 'https://www.google.com/s2/favicons?sz=32&domain=' + encodeURIComponent(host);
-      } catch (_) {}
+        let host = new URL(urlString).hostname;
+        if (host) return `https://www.google.com/s2/favicons?sz=24&domain=${encodeURIComponent(host)}`;
+      } catch(e) {}
       return '';
     }
 
-    function renderTabs() {
-      tabContainer.querySelectorAll('.tab').forEach(el => el.remove());
-      for (let tab of tabs) {
-        let tabEl = document.createElement('div');
-        tabEl.className = 'tab' + (tab.id === activeTabId ? ' active' : '');
-        const iconUrl = getTabIconUrl(tab);
-        const iconHtml = iconUrl ? '<img class="tab-icon" alt="" src="' + escapeHtml(iconUrl) + '" onerror="this.style.visibility=\'hidden\'">' : '';
-        tabEl.innerHTML = iconHtml + '<span class="tab-title">' + escapeHtml(tab.title) + '</span><span class="tab-close" data-id="' + tab.id + '">&#x2715;</span>';
-        tabEl.addEventListener('click', e => {
-          if (!e.target.classList.contains('tab-close')) switchTab(tab.id);
+    function renderTabBar() {
+      const existingTabs = tabContainer.querySelectorAll('.tab-card:not(#add-tab)');
+      existingTabs.forEach(el => el.remove());
+      for (let t of allTabs) {
+        let div = document.createElement('div');
+        div.className = 'tab-card' + (t.id === currentTabId ? ' active' : '');
+        let favUrl = getFaviconIcon(t.destUrl || t.displayAddr || '');
+        let imgHtml = favUrl ? `<img class="tab-fav" src="${escapeHtml(favUrl)}" onerror="this.style.opacity='0'">` : '';
+        div.innerHTML = imgHtml + `<span class="tab-label">${escapeHtml(t.title || 'untitled')}</span><span class="tab-close-btn" data-id="${t.id}">✕</span>`;
+        div.addEventListener('click', (e) => {
+          if (!e.target.classList.contains('tab-close-btn')) switchToTab(t.id);
         });
-        tabEl.querySelector('.tab-close').addEventListener('click', e => {
+        const closer = div.querySelector('.tab-close-btn');
+        closer.addEventListener('click', (e) => {
           e.stopPropagation();
-          closeTab(tab.id);
+          killTab(t.id);
         });
-        tabContainer.insertBefore(tabEl, newTabBtn);
+        tabContainer.insertBefore(div, newTabButton);
       }
     }
 
-    function switchTab(id) {
-      activeTabId = id;
-      for (let t of tabs) {
-        let isActive = t.id === id;
-        t.frame.classList.toggle('active', isActive && !!t.proxiedUrl);
-        t.newtab.classList.toggle('active', isActive && !t.proxiedUrl);
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+
+    function switchToTab(id) {
+      currentTabId = id;
+      const tabObj = allTabs.find(t => t.id === id);
+      if (!tabObj) return;
+      for (let t of allTabs) {
+        const isActive = (t.id === id);
+        t.frameEl.classList.toggle('active', isActive && !!t.proxiedLink);
+        t.ntpDiv.classList.toggle('active', isActive && !t.proxiedLink);
       }
-      let activeTab = tabs.find(t => t.id === id);
-      urlInput.value = activeTab ? (activeTab.displayUrl || '') : '';
-      renderTabs();
+      urlField.value = tabObj.displayAddr || '';
+      renderTabBar();
     }
 
-    function closeTab(id) {
-      let idx = tabs.findIndex(t => t.id === id);
-      if (idx === -1) return;
-      let tab = tabs[idx];
-      if (tab._loadTimer) clearTimeout(tab._loadTimer);
-      tab.frame.remove();
-      tab.newtab.remove();
-      tabs.splice(idx, 1);
-      if (tabs.length === 0) {
-        createTab();
-        return;
-      }
-      if (activeTabId === id) {
-        switchTab(tabs[Math.min(idx, tabs.length - 1)].id);
-      } else {
-        renderTabs();
-      }
-    }
-
-    async function doNavigate(tab, destUrl) {
-      if (!destUrl) return;
-
-      let proxied = null;
-      if (window.proxyReady() && getProxiedSync) {
-        try { proxied = getProxiedSync(destUrl); } catch (_) {}
-      }
-
-      if (proxied) {
-        tab.proxiedUrl = proxied;
-        tab.destUrl = destUrl;
-        tab.frame.src = proxied;
-        tab.newtab.classList.remove('active');
-        if (activeTabId === tab.id) tab.frame.classList.add('active');
-      }
-
-      tab.loadState = 'loading';
-      tab.title = 'Loading…';
-      tab.displayUrl = destUrl;
-      if (activeTabId === tab.id) urlInput.value = destUrl;
-      renderTabs();
-
-      if (proxied) {
-        tab.frame.onload = onFrameLoad;
-        tab.frame.onerror = onFrameError;
-        return;
-      }
-
-      if (!window.proxyReady()) {
-        showToast('Initializing proxy...', 2000);
-        await window.initProxy();
-      }
-
-      if (!window.proxyReady()) {
-        showToast('Proxy not available', 3000);
-        tab.loadState = 'error';
-        tab.title = 'Error';
-        renderTabs();
-        return;
-      }
-
-      try {
-        proxied = await getProxied(destUrl);
-      } catch (err) {
-        showToast('Proxy error: ' + (err?.message ?? String(err)), 3000);
-        tab.loadState = 'error';
-        tab.title = 'Failed';
-        renderTabs();
-        return;
-      }
-
-      if (!proxied) {
-        showToast('Proxy returned empty', 3000);
-        return;
-      }
-
-      tab.proxiedUrl = proxied;
-      tab.destUrl = destUrl;
-
-      tab.frame.onload = onFrameLoad;
-      tab.frame.onerror = onFrameError;
-      tab.frame.src = proxied;
-      tab.newtab.classList.remove('active');
-      if (activeTabId === tab.id) tab.frame.classList.add('active');
-
-      function onFrameLoad() {
-        tab.loadState = 'loaded';
-        tab.retryCount = 0;
-        let resolvedDisplay = destUrl;
-        try {
-          let href = tab.frame.contentWindow?.location?.href || '';
-          let match = href.match(/\/scramjet\/(.+)$/);
-          if (match) resolvedDisplay = decodeURIComponent(match[1]);
-        } catch(_) {}
-        tab.displayUrl = resolvedDisplay;
-        try {
-          tab.title = new URL(resolvedDisplay).hostname.replace(/^www\./, '') || 'Page';
-        } catch(_) {
-          tab.title = 'Page';
-        }
-        if (activeTabId === tab.id) urlInput.value = tab.displayUrl;
-        renderTabs();
-      }
-
-      function onFrameError() {
-        tab.loadState = 'error';
-        tab.title = 'Error';
-        renderTabs();
-      }
-    }
-
-    async function navigateTab(tabId, raw) {
-      raw = (raw || '').trim();
-      if (!raw) return;
-      let tab = tabs.find(t => t.id === tabId);
+    async function navigateTabById(tabId, rawQuery) {
+      let query = (rawQuery || '').trim();
+      if (!query) return;
+      let target = resolveDestination(query);
+      if (!target) return;
+      let tab = allTabs.find(t => t.id === tabId);
       if (!tab) return;
-      let destUrl = buildDestUrl(raw);
-      if (!destUrl) return;
-      tab.retryCount = 0;
-      await doNavigate(tab, destUrl);
+      tab.loadingFlag = true;
+      tab.displayAddr = target;
+      if (currentTabId === tabId) urlField.value = target;
+      renderTabBar();
+      if (spinnerIcon) spinnerIcon.classList.remove('hide-spinner');
+
+      let proxiedTarget = null;
+      if (proxyLive && getProxiedUrlSync) {
+        try { proxiedTarget = getProxiedUrlSync(target); } catch(_) {}
+      }
+      if (proxiedTarget) {
+        commitProxied(tab, target, proxiedTarget);
+        if (spinnerIcon) spinnerIcon.classList.add('hide-spinner');
+        return;
+      }
+      if (!proxyLive) {
+        showMsg('proxy warming up...');
+        await primeProxy();
+      }
+      try {
+        proxiedTarget = await getProxiedUrlAsync(target);
+        if (!proxiedTarget) throw new Error('empty proxy');
+        commitProxied(tab, target, proxiedTarget);
+      } catch(err) {
+        showMsg('proxy fail: ' + err.message.slice(0, 60));
+        tab.loadingFlag = false;
+        tab.title = 'failed';
+        renderTabBar();
+      } finally {
+        if (spinnerIcon) spinnerIcon.classList.add('hide-spinner');
+      }
     }
 
-    function createTab(initialUrl) {
-      let id = ++tabCounter;
-
-      let frame = document.createElement('iframe');
-      frame.className = 'browser-frame';
-      frame.setAttribute('allow', 'fullscreen; microphone; camera; autoplay; clipboard-read; clipboard-write; accelerometer; gyroscope; payment; usb; xr-spatial-tracking');
-      contentDiv.appendChild(frame);
-
-      let newtabDiv = document.createElement('div');
-      newtabDiv.className = 'new-tab-page';
-      newtabDiv.innerHTML = '<div class="nt-greeting">Sunlit</div><div class="nt-search-area"><input class="nt-search" type="text" placeholder="' + escapeHtml(getSearchPlaceholder()) + '" autocomplete="off" spellcheck="false"></div>';
-      contentDiv.appendChild(newtabDiv);
-
-      let tabObj = {
-        id, frame, newtab: newtabDiv,
-        title: 'New Tab',
-        proxiedUrl: null, destUrl: null, displayUrl: '',
-        loadState: 'idle', retryCount: 0, _loadTimer: null
+    function commitProxied(tab, originalUrl, proxyUrl) {
+      tab.proxiedLink = proxyUrl;
+      tab.destUrl = originalUrl;
+      tab.frameEl.src = proxyUrl;
+      tab.ntpDiv.classList.remove('active');
+      if (currentTabId === tab.id) tab.frameEl.classList.add('active');
+      tab.loadingFlag = false;
+      tab.title = extractDomain(originalUrl);
+      tab.displayAddr = originalUrl;
+      if (currentTabId === tab.id) urlField.value = originalUrl;
+      renderTabBar();
+      tab.frameEl.onload = () => {
+        let finalDisplay = originalUrl;
+        try {
+          let frameLoc = tab.frameEl.contentWindow?.location?.href || '';
+          let match = frameLoc.match(/\/scramjet\/(.+)$/);
+          if (match) finalDisplay = decodeURIComponent(match[1]);
+        } catch(_) {}
+        tab.displayAddr = finalDisplay;
+        tab.title = extractDomain(finalDisplay);
+        if (currentTabId === tab.id) urlField.value = finalDisplay;
+        renderTabBar();
       };
-      tabs.push(tabObj);
+      tab.frameEl.onerror = () => {
+        tab.title = 'error';
+        renderTabBar();
+        showMsg('load error');
+      };
+    }
 
-      let ntInput = newtabDiv.querySelector('.nt-search');
-      ntInput.addEventListener('keydown', e => {
-        if (e.key === 'Enter' && ntInput.value.trim()) {
-          navigateTab(id, ntInput.value);
-        }
+    function extractDomain(urlStr) {
+      try { return new URL(urlStr).hostname.replace(/^www\./, ''); } catch(e) { return 'page'; }
+    }
+
+    function killTab(id) {
+      let idx = allTabs.findIndex(t => t.id === id);
+      if (idx === -1) return;
+      let dead = allTabs[idx];
+      dead.frameEl.remove();
+      dead.ntpDiv.remove();
+      allTabs.splice(idx,1);
+      if (allTabs.length === 0) { spawnNewTab(); return; }
+      if (currentTabId === id) switchToTab(allTabs[Math.min(idx, allTabs.length-1)].id);
+      else renderTabBar();
+    }
+
+    function spawnNewTab(initialUrl = null) {
+      let tid = ++nextTabId;
+      let iframe = document.createElement('iframe');
+      iframe.className = 'browser-sheet';
+      iframe.setAttribute('allow', 'fullscreen; microphone; camera; autoplay; clipboard-read; clipboard-write; accelerometer;');
+      webRoot.appendChild(iframe);
+      let ntpDiv = document.createElement('div');
+      ntpDiv.className = 'new-tab-overlay';
+      ntpDiv.innerHTML = `<div class="greeting-text">~ nebula</div><div class="search-zone"><input class="search-field-custom" type="text" placeholder="${escapeHtml(getEnginePlaceholder())}" autocomplete="off"></div>`;
+      webRoot.appendChild(ntpDiv);
+      let tabObj = {
+        id: tid, frameEl: iframe, ntpDiv: ntpDiv,
+        title: 'fresh', proxiedLink: null, destUrl: null, displayAddr: '',
+        loadingFlag: false
+      };
+      allTabs.push(tabObj);
+      let searchBox = ntpDiv.querySelector('.search-field-custom');
+      searchBox.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && searchBox.value.trim()) navigateTabById(tid, searchBox.value);
       });
-
-      renderTabs();
-      switchTab(id);
-
-      if (initialUrl) {
-        navigateTab(id, initialUrl);
-      } else {
-        setTimeout(() => ntInput.focus(), 50);
-      }
-
-      return id;
+      renderTabBar();
+      switchToTab(tid);
+      if (initialUrl) navigateTabById(tid, initialUrl);
+      else setTimeout(() => searchBox.focus(), 30);
+      return tid;
     }
 
     function updateEngineUI() {
-      duckCheck.textContent = searchEngine === 'duckduckgo' ? '✓' : '';
-      braveCheck.textContent = searchEngine === 'brave' ? '✓' : '';
-      let ph = getSearchPlaceholder();
-      urlInput.placeholder = ph;
-      document.querySelectorAll('.nt-search').forEach(el => { el.placeholder = ph; });
+      if (activeEngine === 'duckduckgo') { ddgMarkSpan.textContent = '✓'; braveMarkSpan.textContent = ''; }
+      else { braveMarkSpan.textContent = '✓'; ddgMarkSpan.textContent = ''; }
+      urlField.placeholder = getEnginePlaceholder();
+      document.querySelectorAll('.search-field-custom').forEach(el => { el.placeholder = getEnginePlaceholder(); });
     }
 
-    urlInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && urlInput.value.trim()) {
-        navigateTab(activeTabId, urlInput.value);
+    function toggleFullUi() {
+      if (!fullActive) {
+        document.body.classList.add('fullscreen-mode');
+        fullToggle.textContent = '✕';
+        fullActive = true;
+      } else {
+        document.body.classList.remove('fullscreen-mode');
+        fullToggle.textContent = '⛶';
+        fullActive = false;
       }
+    }
+
+    function exitFullUi() {
+      if (fullActive) {
+        document.body.classList.remove('fullscreen-mode');
+        fullToggle.textContent = '⛶';
+        fullActive = false;
+      }
+    }
+
+    // event bindings
+    newTabButton.addEventListener('click', () => spawnNewTab());
+    backButton.addEventListener('click', () => {
+      let tab = allTabs.find(t => t.id === currentTabId);
+      try { tab?.frameEl?.contentWindow?.history.back(); } catch(e) {}
     });
-
-    newTabBtn.addEventListener('click', () => createTab());
-
-    backBtn.addEventListener('click', () => {
-      let tab = tabs.find(t => t.id === activeTabId);
-      try { tab?.frame?.contentWindow?.history.back(); } catch(_) {}
+    forwardButton.addEventListener('click', () => {
+      let tab = allTabs.find(t => t.id === currentTabId);
+      try { tab?.frameEl?.contentWindow?.history.forward(); } catch(e) {}
     });
-
-    forwardBtn.addEventListener('click', () => {
-      let tab = tabs.find(t => t.id === activeTabId);
-      try { tab?.frame?.contentWindow?.history.forward(); } catch(_) {}
+    reloader.addEventListener('click', () => {
+      let tab = allTabs.find(t => t.id === currentTabId);
+      if (tab?.destUrl) navigateTabById(currentTabId, tab.destUrl);
     });
-
-    reloadBtn.addEventListener('click', () => {
-      let tab = tabs.find(t => t.id === activeTabId);
-      if (tab?.destUrl) navigateTab(activeTabId, tab.destUrl);
+    urlField.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && urlField.value.trim()) navigateTabById(currentTabId, urlField.value);
     });
+    fullToggle.addEventListener('click', toggleFullUi);
+    fsExitBtn.addEventListener('click', exitFullUi);
 
-    fullscreenBtn.addEventListener('click', toggleFullscreen);
-    exitFullscreenBtn.addEventListener('click', exitFullscreen);
-
-    ddDuck.addEventListener('click', () => {
-      searchEngine = 'duckduckgo';
-      localStorage.setItem('searchEngine', 'duckduckgo');
+    ddgOption.addEventListener('click', () => {
+      activeEngine = 'duckduckgo';
+      localStorage.setItem('enginePref', 'duckduckgo');
       updateEngineUI();
-      dropdown.classList.remove('open');
+      menuPanel.classList.remove('open-menu');
     });
-
-    ddBrave.addEventListener('click', () => {
-      searchEngine = 'brave';
-      localStorage.setItem('searchEngine', 'brave');
+    braveOption.addEventListener('click', () => {
+      activeEngine = 'brave';
+      localStorage.setItem('enginePref', 'brave');
       updateEngineUI();
-      dropdown.classList.remove('open');
+      menuPanel.classList.remove('open-menu');
     });
-
-    ddSettings.addEventListener('click', () => {
-      wispInput.value = localStorage.getItem('wispServer') || 'wss://wisp.waved.site/';
-      transportSelect.value = localStorage.getItem('transport') || 'libcurl';
-      settingsModal.classList.add('open');
-      dropdown.classList.remove('open');
+    settingsBtn.addEventListener('click', () => {
+      wispInputModal.value = localStorage.getItem('wisp_custom') || 'wss://wisp.waved.site/';
+      transportSelectModal.value = localStorage.getItem('transport_mode') || 'libcurl';
+      modalBg.classList.add('open');
+      menuPanel.classList.remove('open-menu');
     });
-
-    menuBtn.addEventListener('click', e => {
+    cancelModal.addEventListener('click', () => modalBg.classList.remove('open'));
+    saveModal.addEventListener('click', async () => {
+      let wispVal = wispInputModal.value.trim();
+      let transportVal = transportSelectModal.value;
+      if (wispVal) {
+        localStorage.setItem('wisp_custom', wispVal);
+        await updateWisp(wispVal);
+      }
+      localStorage.setItem('transport_mode', transportVal);
+      await updateTransport(transportVal);
+      showMsg('preferences synced');
+      modalBg.classList.remove('open');
+    });
+    document.getElementById('menu-dotz')?.addEventListener('click', (e) => {
       e.stopPropagation();
-      dropdown.classList.toggle('open');
+      menuPanel.classList.toggle('open-menu');
     });
-
-    document.addEventListener('click', () => {
-      dropdown.classList.remove('open');
-    });
-
-    closeSettingsBtn.addEventListener('click', () => {
-      settingsModal.classList.remove('open');
-    });
-
-    saveSettingsBtn.addEventListener('click', async () => {
-      let newWisp = wispInput.value.trim();
-      let newTransport = transportSelect.value;
-      if (newWisp) {
-        localStorage.setItem('wispServer', newWisp);
-        if (setWisp) await setWisp(newWisp);
-      }
-      localStorage.setItem('transport', newTransport);
-      if (setTransport) await setTransport(newTransport);
-      showToast('Settings saved');
-      settingsModal.classList.remove('open');
-    });
-
+    document.addEventListener('click', () => { menuPanel.classList.remove('open-menu'); });
+    
     updateEngineUI();
-    createTab();
+    spawnNewTab();
   </script>
 </body>
 </html>
