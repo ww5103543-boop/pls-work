@@ -23,7 +23,8 @@ async function initProxy() {
 
   proxyInitPromise = (async () => {
     try {
-      const m = await import("/ximplesc/ximple.mjs");
+      const base = new URL(import.meta.url).origin;
+      const m = await import(base + "/ximplesc/ximple.mjs");
       proxyModule = m;
 
       const w = localStorage.getItem('wispServer') || "wss://wisp.waved.site/";
