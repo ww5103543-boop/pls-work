@@ -29,6 +29,9 @@ async function loadScramjet() {
                 all: `/ximplesc/scram/scramjet.all.js`,
                 sync: `/ximplesc/scram/scramjet.sync.js`,
             },
+            flags: {
+                captureErrors: false,
+            },
             siteFlags: {
                 "https://www.google.com/(search|sorry).*": {
                     naiiveRewriter: true,
