@@ -159,15 +159,32 @@ function renderTabs() {
   }
 }
 
+function attachTabContent(tab) {
+  if (!tab.frame.isConnected) contentDiv.appendChild(tab.frame);
+  if (!tab.newtab.isConnected) contentDiv.appendChild(tab.newtab);
+}
+
+function detachTabContent(tab) {
+  tab.frame.classList.remove('active');
+  tab.newtab.classList.remove('active');
+  if (tab.frame.isConnected) tab.frame.remove();
+  if (tab.newtab.isConnected) tab.newtab.remove();
+}
+
 function switchTab(id) {
-  activeTabId = id;
-  for (let t of tabs) {
-    let isActive = t.id === id;
-    t.frame.classList.toggle('active', isActive && !!t.proxiedUrl);
-    t.newtab.classList.toggle('active', isActive && !t.proxiedUrl);
+  let previousTab = tabs.find(t => t.id === activeTabId);
+  if (previousTab && previousTab.id !== id) {
+    detachTabContent(previousTab);
   }
+
+  activeTabId = id;
   let activeTab = tabs.find(t => t.id === id);
-  urlInput.value = activeTab ? (activeTab.displayUrl || '') : '';
+  if (!activeTab) return;
+
+  attachTabContent(activeTab);
+  activeTab.frame.classList.toggle('active', !!activeTab.proxiedUrl);
+  activeTab.newtab.classList.toggle('active', !activeTab.proxiedUrl);
+  urlInput.value = activeTab.displayUrl || '';
   renderTabs();
 }
 
@@ -298,12 +315,10 @@ function createTab(initialUrl) {
   let frame = document.createElement('iframe');
   frame.className = 'browser-frame';
   frame.setAttribute('allow', 'fullscreen; microphone; camera; autoplay; clipboard-read; clipboard-write; accelerometer; gyroscope; payment; usb; xr-spatial-tracking');
-  contentDiv.appendChild(frame);
 
   let newtabDiv = document.createElement('div');
   newtabDiv.className = 'new-tab-page';
   newtabDiv.innerHTML = '<div class="nt-greeting">Sunlit</div><div class="nt-search-area"><input class="nt-search" type="text" placeholder="' + escapeHtml(getSearchPlaceholder()) + '" autocomplete="off" spellcheck="false"></div>';
-  contentDiv.appendChild(newtabDiv);
 
   let tabObj = {
     id, frame, newtab: newtabDiv,
