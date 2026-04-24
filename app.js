@@ -159,58 +159,15 @@ function renderTabs() {
   }
 }
 
-function clearLoadTimer(tab) {
-  if (tab._loadTimer) {
-    clearTimeout(tab._loadTimer);
-    tab._loadTimer = null;
-  }
-}
-
-function setLoadTimeout(tab, timeout = 20000) {
-  clearLoadTimer(tab);
-  tab._loadTimer = setTimeout(() => {
-    tab.frame.onload = null;
-    tab.frame.onerror = null;
-    tab.loadState = 'error';
-    tab.title = 'Timeout';
-    if (tab.frame.src && tab.frame.src !== 'about:blank') {
-      try {
-        tab.frame.src = 'about:blank';
-      } catch (_) {
-      }
-    }
-    if (activeTabId === tab.id) urlInput.value = tab.displayUrl || '';
-    showToast('Page load timed out', 3000);
-    renderTabs();
-  }, timeout);
-}
-
-function attachTabContent(tab) {
-  if (!tab.frame.isConnected) contentDiv.appendChild(tab.frame);
-  if (!tab.newtab.isConnected) contentDiv.appendChild(tab.newtab);
-}
-
-function detachTabContent(tab) {
-  tab.frame.classList.remove('active');
-  tab.newtab.classList.remove('active');
-  if (tab.frame.isConnected) tab.frame.remove();
-  if (tab.newtab.isConnected) tab.newtab.remove();
-}
-
 function switchTab(id) {
-  let previousTab = tabs.find(t => t.id === activeTabId);
-  if (previousTab && previousTab.id !== id) {
-    detachTabContent(previousTab);
-  }
-
   activeTabId = id;
+  for (let t of tabs) {
+    let isActive = t.id === id;
+    t.frame.classList.toggle('active', isActive && !!t.proxiedUrl);
+    t.newtab.classList.toggle('active', isActive && !t.proxiedUrl);
+  }
   let activeTab = tabs.find(t => t.id === id);
-  if (!activeTab) return;
-
-  attachTabContent(activeTab);
-  activeTab.frame.classList.toggle('active', !!activeTab.proxiedUrl);
-  activeTab.newtab.classList.toggle('active', !activeTab.proxiedUrl);
-  urlInput.value = activeTab.displayUrl || '';
+  urlInput.value = activeTab ? (activeTab.displayUrl || '') : '';
   renderTabs();
 }
 
@@ -258,7 +215,6 @@ async function doNavigate(tab, destUrl) {
   if (proxied) {
     tab.frame.onload = onFrameLoad;
     tab.frame.onerror = onFrameError;
-    setLoadTimeout(tab);
     return;
   }
 
@@ -295,13 +251,11 @@ async function doNavigate(tab, destUrl) {
 
   tab.frame.onload = onFrameLoad;
   tab.frame.onerror = onFrameError;
-  setLoadTimeout(tab);
   tab.frame.src = proxied;
   tab.newtab.classList.remove('active');
   if (activeTabId === tab.id) tab.frame.classList.add('active');
 
   function onFrameLoad() {
-    clearLoadTimer(tab);
     tab.loadState = 'loaded';
     tab.retryCount = 0;
     let resolvedDisplay = destUrl;
@@ -321,7 +275,6 @@ async function doNavigate(tab, destUrl) {
   }
 
   function onFrameError() {
-    clearLoadTimer(tab);
     tab.loadState = 'error';
     tab.title = 'Error';
     renderTabs();
@@ -345,10 +298,12 @@ function createTab(initialUrl) {
   let frame = document.createElement('iframe');
   frame.className = 'browser-frame';
   frame.setAttribute('allow', 'fullscreen; microphone; camera; autoplay; clipboard-read; clipboard-write; accelerometer; gyroscope; payment; usb; xr-spatial-tracking');
+  contentDiv.appendChild(frame);
 
   let newtabDiv = document.createElement('div');
   newtabDiv.className = 'new-tab-page';
   newtabDiv.innerHTML = '<div class="nt-greeting">Sunlit</div><div class="nt-search-area"><input class="nt-search" type="text" placeholder="' + escapeHtml(getSearchPlaceholder()) + '" autocomplete="off" spellcheck="false"></div>';
+  contentDiv.appendChild(newtabDiv);
 
   let tabObj = {
     id, frame, newtab: newtabDiv,
@@ -365,7 +320,6 @@ function createTab(initialUrl) {
     }
   });
 
-  renderTabs();
   switchTab(id);
 
   if (initialUrl) {
@@ -467,20 +421,30 @@ document.addEventListener('click', () => {
   dropdown.classList.remove('open');
 });
 
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    dropdown.classList.remove('open');
+    settingsModal.classList.remove('open');
+  }
+});
+
 closeSettingsBtn.addEventListener('click', () => {
   settingsModal.classList.remove('open');
+});
+
+settingsModal.addEventListener('click', () => {
+  settingsModal.classList.remove('open');
+});
+
+settingsModal.querySelector('.modal-card').addEventListener('click', e => {
+  e.stopPropagation();
 });
 
 saveSettingsBtn.addEventListener('click', async () => {
   let newWisp = wispInput.value.trim();
   let newTransport = transportSelect.value;
-  if (newWisp) {
-    localStorage.setItem('wispServer', newWisp);
-    if (setWisp) await setWisp(newWisp);
-  } else {
-    localStorage.removeItem('wispServer');
-    if (setWisp) await setWisp('wss://wisp.waved.site/');
-  }
+  localStorage.setItem('wispServer', newWisp);
+  if (setWisp) await setWisp(newWisp);
   localStorage.setItem('transport', newTransport);
   if (setTransport) await setTransport(newTransport);
   showToast('Settings saved');
