@@ -365,7 +365,6 @@ function createTab(initialUrl) {
     }
   });
 
-  renderTabs();
   switchTab(id);
 
   if (initialUrl) {
