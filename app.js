@@ -466,6 +466,23 @@ document.addEventListener('click', () => {
   dropdown.classList.remove('open');
 });
 
+settingsModal.addEventListener('click', e => {
+  if (e.target === settingsModal) {
+    settingsModal.classList.remove('open');
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (dropdown.classList.contains('open')) {
+      dropdown.classList.remove('open');
+    }
+    if (settingsModal.classList.contains('open')) {
+      settingsModal.classList.remove('open');
+    }
+  }
+});
+
 closeSettingsBtn.addEventListener('click', () => {
   settingsModal.classList.remove('open');
 });
