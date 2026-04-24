@@ -5,7 +5,9 @@ if (navigator.userAgent.includes("Firefox")) {
 }
 
 const { ScramjetServiceWorker } = $scramjetLoadWorker();
-const scramjet = new ScramjetServiceWorker();
+const scramjet = new ScramjetServiceWorker({
+    captureErrors: true
+});
 
 const CONFIG = {
     blocked: [
