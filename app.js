@@ -320,7 +320,6 @@ function createTab(initialUrl) {
     }
   });
 
-  renderTabs();
   switchTab(id);
 
   if (initialUrl) {
@@ -422,17 +421,30 @@ document.addEventListener('click', () => {
   dropdown.classList.remove('open');
 });
 
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    dropdown.classList.remove('open');
+    settingsModal.classList.remove('open');
+  }
+});
+
 closeSettingsBtn.addEventListener('click', () => {
   settingsModal.classList.remove('open');
+});
+
+settingsModal.addEventListener('click', () => {
+  settingsModal.classList.remove('open');
+});
+
+settingsModal.querySelector('.modal-card').addEventListener('click', e => {
+  e.stopPropagation();
 });
 
 saveSettingsBtn.addEventListener('click', async () => {
   let newWisp = wispInput.value.trim();
   let newTransport = transportSelect.value;
-  if (newWisp) {
-    localStorage.setItem('wispServer', newWisp);
-    if (setWisp) await setWisp(newWisp);
-  }
+  localStorage.setItem('wispServer', newWisp);
+  if (setWisp) await setWisp(newWisp);
   localStorage.setItem('transport', newTransport);
   if (setTransport) await setTransport(newTransport);
   showToast('Settings saved');
