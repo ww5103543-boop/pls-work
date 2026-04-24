@@ -7,10 +7,10 @@ const PORT = process.env.PORT || 3000;
 const HOST = "0.0.0.0";
 
 const mimeTypes = {
-  ".html": "text/html",
-  ".js": "application/javascript",
-  ".mjs": "application/javascript",
-  ".css": "text/css",
+  ".html": "text/html; charset=utf-8",
+  ".js": "application/javascript; charset=utf-8",
+  ".mjs": "application/javascript; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
   ".json": "application/json",
   ".wasm": "application/wasm",
   ".map": "application/json",
@@ -85,11 +85,15 @@ const server = http.createServer((req, res) => {
     const headers = {
       "Content-Type": contentType,
       "Cache-Control": "public, max-age=3600",
+      "Access-Control-Allow-Origin": "*",
     };
     if (ext === ".html") {
       headers["X-Frame-Options"] = "ALLOWALL";
       headers["Content-Security-Policy"] = "frame-ancestors *";
       headers["Cache-Control"] = "no-cache";
+    }
+    if (ext === ".css" || ext === ".js" || ext === ".mjs") {
+      headers["Cache-Control"] = "public, max-age=86400";
     }
     if (ext === ".wasm") {
       headers["Cache-Control"] = "public, max-age=86400";
