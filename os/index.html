@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Optimistic</title>
+<title>Linux Mint — Cinnamon</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600&family=Noto+Mono&display=swap');
 
@@ -161,9 +161,7 @@
   
   .window {
     position: fixed;
-    background: rgba(45, 48, 53, 0.88);
-    backdrop-filter: blur(14px) saturate(140%);
-    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    background: var(--win-bg);
     border: 1px solid var(--win-border);
     border-radius: 8px;
     box-shadow: var(--shadow);
@@ -183,28 +181,15 @@
     width: 100vw !important; height: calc(100vh - 40px) !important;
     border-radius: 0;
   }
-  .window.glass {
-    background: rgba(45, 48, 53, 0.32);
-    backdrop-filter: blur(22px) saturate(140%);
-    -webkit-backdrop-filter: blur(22px) saturate(140%);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-  }
-  .window.glass .titlebar {
-    background: rgba(60, 64, 72, 0.45);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  }
-  .window.glass .win-content { background: transparent; }
 
   
   .titlebar {
     height: 32px;
-    background: rgba(60, 64, 72, 0.55);
+    background: var(--win-titlebar);
     display: flex; align-items: center;
     padding: 0 8px; gap: 8px;
     cursor: move; flex-shrink: 0;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
+    border-bottom: 1px solid rgba(0,0,0,0.3);
   }
   .win-controls {
     display: flex; gap: 6px;
@@ -467,6 +452,7 @@
     width: 300px; pointer-events: all;
     box-shadow: 0 4px 20px rgba(0,0,0,0.4);
     animation: notifIn 0.25s ease;
+    border-left: 3px solid var(--mint-green);
   }
   @keyframes notifIn { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: translateX(0); } }
   .notif-title { font-size: 12.5px; font-weight: 600; margin-bottom: 3px; }
@@ -814,27 +800,21 @@ document.addEventListener('click', e => {
 });
 
 // ── START MENU ──
-// Icons are kept identical to the pinned-app row in the taskbar.
 const allApps = [
-  { id:'files', label:'Files', svg:{ color:'#87b87f', path:'M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z' } },
-  { id:'terminal', label:'Terminal', img:'https://icons.iconarchive.com/icons/alecive/flatwoken/256/Apps-Terminal-Pc-104-icon.png' },
-  { id:'editor', label:'Text Editor', img:'https://img.icons8.com/ios_filled/512/40C057/document.png' },
-  { id:'settings', label:'System Settings', img:'https://img.icons8.com/ios_filled/512/40C057/apple-settings.png' },
-  { id:'browser', label:'Browser', img:'https://archive.org/download/lalicat-browser-logo/logo1000.png' },
+  { id:'files', label:'Files', color:'#87b87f', icon:'M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z' },
+  { id:'terminal', label:'Terminal', color:'#87b87f', icon:'M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 14H6v-2h12v2zm0-4H6v-2h12v2zm0-4H6V7h12v2z' },
+  { id:'editor', label:'Text Editor', color:'#6ab0f5', icon:'M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z' },
+  { id:'settings', label:'System Settings', color:'#aaa', icon:'M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z' },
 ];
 function buildMenuList(filter='') {
   const list = document.getElementById('menu-apps-list');
   const filtered = filter ? allApps.filter(a=>a.label.toLowerCase().includes(filter.toLowerCase())) : allApps;
-  list.innerHTML = filtered.map(a=>{
-    const icon = a.img
-      ? `<img src="${a.img}" width="18" height="18" style="object-fit:contain;flex-shrink:0">`
-      : `<svg viewBox="0 0 24 24" fill="${a.svg.color}" width="18" height="18"><path d="${a.svg.path}"/></svg>`;
-    return `
+  list.innerHTML = filtered.map(a=>`
     <div class="menu-app-item" onclick="openApp('${a.id}');toggleMenu()">
-      ${icon}
+      <svg viewBox="0 0 24 24" fill="${a.color}" width="18" height="18"><path d="${a.icon}"/></svg>
       <span>${a.label}</span>
-    </div>`;
-  }).join('');
+    </div>
+  `).join('');
 }
 function filterMenu(v) { buildMenuList(v); }
 function toggleMenu() {
@@ -917,11 +897,11 @@ function closeWindow(id) {
   });
 }
 
-function createWindow(id, title, width, height, x, y, contentFn, iconPath, glass) {
+function createWindow(id, title, width, height, x, y, contentFn, iconPath) {
   if(windows[id]) { const e=document.getElementById('win-'+id); e?.classList.remove('minimized'); focusWindow(id); return; }
   windows[id] = { id, title };
   const win = document.createElement('div');
-  win.className = 'window focused' + (glass ? ' glass' : '');
+  win.className = 'window focused';
   win.id = 'win-'+id;
   win.style.cssText = `left:${x}px;top:${y}px;width:${width}px;height:${height}px;z-index:${++zTop}`;
   
@@ -969,10 +949,7 @@ function addWindowBtn(id, title, iconPath) {
   const bar = document.getElementById('open-windows');
   const btn = document.createElement('div');
   btn.className = 'window-btn active'; btn.id = 'tb-'+id;
-  const iconHtml = (iconPath && iconPath.startsWith('http'))
-    ? `<img src="${iconPath}" width="16" height="16" style="object-fit:contain;flex-shrink:0">`
-    : `<svg viewBox="0 0 24 24" fill="#87b87f" width="16" height="16"><path d="${iconPath}"/></svg>`;
-  btn.innerHTML = `${iconHtml}<span>${title}</span>`;
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="#87b87f" width="16" height="16"><path d="${iconPath}"/></svg><span>${title}</span>`;
   btn.addEventListener('click', () => {
     const win = document.getElementById('win-'+id);
     if(!win) return;
@@ -1313,14 +1290,14 @@ function openApp(id) {
     terminal: { title:'Terminal', w:650, h:400, icon:'https://icons.iconarchive.com/icons/alecive/flatwoken/256/Apps-Terminal-Pc-104-icon.png', fn: terminalContent },
     editor: { title:'Text Editor', w:680, h:500, icon:'https://img.icons8.com/ios_filled/512/40C057/document.png', fn: editorContent },
     settings: { title:'System Settings', w:700, h:460, icon:'https://img.icons8.com/ios_filled/512/40C057/apple-settings.png', fn: settingsContent },
-    browser: { title:'Browser', w:880, h:620, icon:'https://archive.org/download/lalicat-browser-logo/logo1000.png', glass:true, fn: () => '<iframe src="./index.html" allowtransparency="true" style="width:100%;height:100%;border:none;background:transparent" allow="fullscreen; clipboard-read; clipboard-write"></iframe>' },
+    browser: { title:'Browser', w:800, h:600, icon:'https://archive.org/download/lalicat-browser-logo/logo1000.png', fn: () => '<iframe src="/index.html" style="width:100%;height:100%;border:none;"></iframe>' },
   };
   const cfg = configs[id];
   if(!cfg) return;
   const x = Math.min(60 + (winOffsetX % 200), window.innerWidth - cfg.w - 20);
   const y = Math.min(40 + (winOffsetY % 160), window.innerHeight - cfg.h - 60);
   winOffsetX += 24; winOffsetY += 24;
-  createWindow(id, cfg.title, cfg.w, cfg.h, x, y, cfg.fn, cfg.icon, cfg.glass);
+  createWindow(id, cfg.title, cfg.w, cfg.h, x, y, cfg.fn, cfg.icon);
   if(id==='files') setTimeout(fmRender, 50);
   if(id==='editor') setTimeout(setupEditor, 50);
   // mark pinned
@@ -1351,122 +1328,6 @@ document.addEventListener('keydown', e => {
   if(e.key==='Super'||e.key==='Meta') { e.preventDefault(); toggleMenu(); }
   if(e.altKey && e.key==='F4' && focused) { e.preventDefault(); closeWindow(focused); }
 });
-
-// ── PERSISTENCE ──
-const OPT_STATE_KEY = 'optimistic.os.windows';
-const OPT_EDITOR_KEY = 'optimistic.os.editor.text';
-const OPT_SETTINGS_KEY = 'optimistic.os.settings';
-let osStateLoaded = false;
-
-function saveOSState() {
-  if (!osStateLoaded) return;
-  const open = [];
-  Object.keys(windows).forEach(id => {
-    const win = document.getElementById('win-'+id);
-    if (!win) return;
-    const isMax = win.classList.contains('maximized');
-    const isMin = win.classList.contains('minimized');
-    const geom = isMax
-      ? (windows[id].savedPos || null)
-      : { left: win.style.left, top: win.style.top, width: win.style.width, height: win.style.height };
-    open.push({ id, maximized: isMax, minimized: isMin, geom });
-  });
-  try { localStorage.setItem(OPT_STATE_KEY, JSON.stringify(open)); } catch(_){}
-}
-
-// Wrap lifecycle functions so any change persists
-(function patchWindowFns(){
-  const _c = createWindow, _x = closeWindow, _mn = minimizeWindow, _mx = maximizeWindow;
-  createWindow = function(){ const r = _c.apply(this, arguments); saveOSState(); return r; };
-  closeWindow = function(){ const r = _x.apply(this, arguments); saveOSState(); return r; };
-  minimizeWindow = function(){ const r = _mn.apply(this, arguments); saveOSState(); return r; };
-  maximizeWindow = function(){ const r = _mx.apply(this, arguments); saveOSState(); return r; };
-})();
-
-// Persist after drag/resize
-document.addEventListener('mouseup', () => setTimeout(saveOSState, 60));
-window.addEventListener('beforeunload', saveOSState);
-
-// Editor: persist text on every input + restore when opened
-document.addEventListener('input', e => {
-  if (e.target && e.target.id === 'editor-area') {
-    try { localStorage.setItem(OPT_EDITOR_KEY, e.target.value); } catch(_){}
-  }
-});
-
-// Settings: persist toggles/selects/sliders
-function saveSettings() {
-  const data = {};
-  document.querySelectorAll('.settings-row').forEach((row, i) => {
-    const label = row.querySelector('label')?.textContent || ('row'+i);
-    const toggle = row.querySelector('.toggle');
-    const select = row.querySelector('select');
-    const slider = row.querySelector('input[type=range]');
-    if (toggle) data[label] = { type:'toggle', value: toggle.classList.contains('on') };
-    else if (select) data[label] = { type:'select', value: select.value };
-    else if (slider) data[label] = { type:'slider', value: slider.value };
-  });
-  try { localStorage.setItem(OPT_SETTINGS_KEY, JSON.stringify(data)); } catch(_){}
-}
-document.addEventListener('click', e => {
-  if (e.target?.classList?.contains('toggle')) setTimeout(saveSettings, 0);
-});
-document.addEventListener('change', e => {
-  if (e.target?.matches?.('.settings-select, .settings-slider, input[type=range]')) saveSettings();
-});
-
-// Watch the DOM and hydrate editor textarea / settings rows when they appear
-new MutationObserver(() => {
-  const ea = document.getElementById('editor-area');
-  if (ea && !ea.dataset.optHydrated) {
-    ea.dataset.optHydrated = '1';
-    const saved = localStorage.getItem(OPT_EDITOR_KEY);
-    if (saved !== null) ea.value = saved;
-  }
-  const sb = document.querySelector('.settings-body');
-  if (sb && !sb.dataset.optHydrated) {
-    sb.dataset.optHydrated = '1';
-    let saved = null;
-    try { saved = JSON.parse(localStorage.getItem(OPT_SETTINGS_KEY) || 'null'); } catch(_){}
-    if (saved) {
-      sb.querySelectorAll('.settings-row').forEach((row, i) => {
-        const label = row.querySelector('label')?.textContent || ('row'+i);
-        const v = saved[label]; if (!v) return;
-        const toggle = row.querySelector('.toggle');
-        const select = row.querySelector('select');
-        const slider = row.querySelector('input[type=range]');
-        if (toggle && v.type==='toggle') toggle.classList.toggle('on', !!v.value);
-        else if (select && v.type==='select') select.value = v.value;
-        else if (slider && v.type==='slider') slider.value = v.value;
-      });
-    }
-  }
-}).observe(document.body, { childList: true, subtree: true });
-
-// Restore previously open windows on boot
-(function restoreOSWindows(){
-  let saved = null;
-  try { saved = JSON.parse(localStorage.getItem(OPT_STATE_KEY) || 'null'); } catch(_){}
-  if (Array.isArray(saved) && saved.length) {
-    saved.forEach(s => {
-      try {
-        openApp(s.id);
-        const win = document.getElementById('win-'+s.id);
-        if (!win) return;
-        if (s.geom && s.geom.left) {
-          win.style.left = s.geom.left; win.style.top = s.geom.top;
-          win.style.width = s.geom.width; win.style.height = s.geom.height;
-        }
-        if (s.maximized) {
-          if (windows[s.id]) windows[s.id].savedPos = s.geom;
-          win.classList.add('maximized');
-        }
-        if (s.minimized) win.classList.add('minimized');
-      } catch(_){}
-    });
-  }
-  osStateLoaded = true;
-})();
 </script>
 </body>
 </html>
