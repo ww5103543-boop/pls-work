@@ -1313,7 +1313,7 @@ function openApp(id) {
     terminal: { title:'Terminal', w:650, h:400, icon:'https://icons.iconarchive.com/icons/alecive/flatwoken/256/Apps-Terminal-Pc-104-icon.png', fn: terminalContent },
     editor: { title:'Text Editor', w:680, h:500, icon:'https://img.icons8.com/ios_filled/512/40C057/document.png', fn: editorContent },
     settings: { title:'System Settings', w:700, h:460, icon:'https://img.icons8.com/ios_filled/512/40C057/apple-settings.png', fn: settingsContent },
-    browser: { title:'Browser', w:880, h:620, icon:'https://archive.org/download/lalicat-browser-logo/logo1000.png', glass:true, fn: () => '<iframe src="/browser" allowtransparency="true" style="width:100%;height:100%;border:none;background:transparent" allow="fullscreen; clipboard-read; clipboard-write"></iframe>' },
+    browser: { title:'Browser', w:880, h:620, icon:'https://archive.org/download/lalicat-browser-logo/logo1000.png', glass:true, fn: () => '<iframe src="/index.html" allowtransparency="true" style="width:100%;height:100%;border:none;background:transparent" allow="fullscreen; clipboard-read; clipboard-write"></iframe>' },
   };
   const cfg = configs[id];
   if(!cfg) return;
