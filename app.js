@@ -302,7 +302,7 @@ function createTab(initialUrl) {
 
   let newtabDiv = document.createElement('div');
   newtabDiv.className = 'new-tab-page';
-  newtabDiv.innerHTML = '<div class="nt-greeting">Optimistic</div><div class="nt-search-area"><input class="nt-search" type="text" placeholder="' + escapeHtml(getSearchPlaceholder()) + '" autocomplete="off" spellcheck="false"></div>';
+  newtabDiv.innerHTML = '<div class="nt-greeting">Sunlit</div><div class="nt-search-area"><input class="nt-search" type="text" placeholder="' + escapeHtml(getSearchPlaceholder()) + '" autocomplete="off" spellcheck="false"></div>';
   contentDiv.appendChild(newtabDiv);
 
   let tabObj = {
