@@ -56,7 +56,6 @@ function proxyMovie(targetUrl, req, res) {
 const server = http.createServer((req, res) => {
   let urlPath = req.url.split("?")[0];
 
-  // Handle movie proxy requests
   if (urlPath === "/proxy-movie") {
     const urlParams = new URLSearchParams(req.url.split("?")[1]);
     const movieUrl = urlParams.get("url");
@@ -74,6 +73,7 @@ const server = http.createServer((req, res) => {
   if (urlPath === "/") urlPath = "/index.html";
   if (urlPath === "/games") urlPath = "/games.html";
   if (urlPath === "/movies" || urlPath === "/movies/") urlPath = "/movies/index.html";
+  if (urlPath === "/os" || urlPath === "/os/") urlPath = "/os/index.html";
 
   const rootAttempt    = path.join(__dirname, urlPath);
   const appsAttempt    = path.join(__dirname, "apps", urlPath);
