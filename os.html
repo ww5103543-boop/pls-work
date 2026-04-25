@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linux Mint — Cinnamon</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600&family=Noto+Mono&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --mint-green: #87b87f;
+    --mint-dark: #5a8a52;
+    --panel-bg: rgba(30,34,38,0.96);
+    --panel-border: rgba(255,255,255,0.08);
+    --win-bg: #2d3035;
+    --win-titlebar: #3c4048;
+    --win-border: #1a1d21;
+    --text: #e8eaed;
+    --text-muted: #9aa0a8;
+    --accent: #87b87f;
+    --hover: rgba(255,255,255,0.07);
+    --active: rgba(135,184,127,0.18);
+    --shadow: 0 8px 40px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.4);
+    --desktop-font: 'Noto Sans', sans-serif;
+    --mono-font: 'Noto Mono', monospace;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    font-family: var(--desktop-font);
+    font-size: 13px;
+    color: var(--text);
+    user-select: none;
+  }
+
+  /* ── DESKTOP ── */
+  #desktop {
+    position: fixed; inset: 0;
+    background: url('https://www.linuxmint.com/pictures/wallpapers/1920x1200/darktrails.jpg') center/cover no-repeat;
+    background-color: #1b2c1a;
+    overflow: hidden;
+  }
+  #desktop-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.05) 100%);
+  }
+
+  /* ── DESKTOP ICONS ── */
+  .desktop-icons {
+    position: absolute;
+    top: 12px; left: 12px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .desktop-icon {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 4px; padding: 6px 8px; border-radius: 6px;
+    cursor: pointer; width: 72px;
+    transition: background 0.15s;
+  }
+  .desktop-icon:hover { background: rgba(255,255,255,0.12); }
+  .desktop-icon.selected { background: rgba(135,184,127,0.25); }
+  .desktop-icon svg, .desktop-icon .icon-img { width: 40px; height: 40px; }
+  .desktop-icon span {
+    font-size: 11px; color: #fff;
+    text-align: center; line-height: 1.3;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.6);
+    word-break: break-word;
+  }
+
+  /* ── TASKBAR (bottom panel) ── */
+  #taskbar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    height: 40px;
+    background: var(--panel-bg);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid var(--panel-border);
+    display: flex; align-items: center;
+    z-index: 9000;
+    padding: 0 4px;
+  }
+
+  /* Menu button */
+  #menu-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 4px 10px; height: 32px;
+    border-radius: 4px; cursor: pointer;
+    transition: background 0.15s;
+    color: var(--text);
+  }
+  #menu-btn:hover { background: var(--hover); }
+  #menu-btn svg { width: 20px; height: 20px; fill: var(--mint-green); }
+  #menu-btn span { font-size: 13px; font-weight: 500; }
+
+  /* Taskbar separator */
+  .tb-sep {
+    width: 1px; height: 22px;
+    background: var(--panel-border); margin: 0 4px;
+  }
+
+  /* Pinned apps */
+  #pinned-apps {
+    display: flex; align-items: center; gap: 2px;
+  }
+  .pinned-app {
+    width: 34px; height: 34px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: background 0.15s; position: relative;
+  }
+  .pinned-app:hover { background: var(--hover); }
+  .pinned-app.running::after {
+    content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
+    width: 4px; height: 4px; border-radius: 50%;
+    background: var(--mint-green);
+  }
+  .pinned-app svg { width: 20px; height: 20px; }
+
+  /* Open window buttons */
+  #open-windows {
+    display: flex; align-items: center; gap: 2px;
+    flex: 1; overflow: hidden;
+  }
+  .window-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 0 8px; height: 32px; border-radius: 4px;
+    cursor: pointer; transition: background 0.15s;
+    max-width: 180px; min-width: 100px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .window-btn:hover { background: var(--hover); }
+  .window-btn.active { background: var(--active); border-color: rgba(135,184,127,0.3); }
+  .window-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .window-btn span { font-size: 11.5px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* System tray */
+  #systray {
+    display: flex; align-items: center; gap: 0;
+    margin-left: auto;
+  }
+  .tray-icon {
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 4px; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .tray-icon:hover { background: var(--hover); }
+  .tray-icon svg { width: 16px; height: 16px; fill: var(--text-muted); }
+  .tray-icon:hover svg { fill: var(--text); }
+
+  #clock {
+    padding: 0 10px; height: 32px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    cursor: pointer; border-radius: 4px;
+    transition: background 0.15s; line-height: 1.2;
+  }
+  #clock:hover { background: var(--hover); }
+  #clock .time { font-size: 13px; font-weight: 500; color: var(--text); }
+  #clock .date { font-size: 10px; color: var(--text-muted); }
+
+  /* ── WINDOWS ── */
+  .window {
+    position: fixed;
+    background: var(--win-bg);
+    border: 1px solid var(--win-border);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    min-width: 300px; min-height: 200px;
+    z-index: 100;
+    transition: box-shadow 0.15s;
+  }
+  .window.focused {
+    box-shadow: var(--shadow), 0 0 0 1px rgba(135,184,127,0.3);
+    z-index: 200;
+  }
+  .window.minimized { display: none; }
+  .window.maximized {
+    top: 0 !important; left: 0 !important;
+    width: 100vw !important; height: calc(100vh - 40px) !important;
+    border-radius: 0;
+  }
+
+  /* Titlebar */
+  .titlebar {
+    height: 32px;
+    background: var(--win-titlebar);
+    display: flex; align-items: center;
+    padding: 0 8px; gap: 8px;
+    cursor: move; flex-shrink: 0;
+    border-bottom: 1px solid rgba(0,0,0,0.3);
+  }
+  .win-controls {
+    display: flex; gap: 6px;
+  }
+  .win-btn {
+    width: 13px; height: 13px; border-radius: 50%;
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: bold;
+    transition: filter 0.1s;
+    position: relative;
+  }
+  .win-btn:hover { filter: brightness(1.2); }
+  .win-btn.close { background: #ff5f57; }
+  .win-btn.minimize { background: #febc2e; }
+  .win-btn.maximize { background: #28c840; }
+  .win-btn .win-btn-icon { opacity: 0; font-style: normal; font-size: 9px; color: rgba(0,0,0,0.6); line-height: 1; }
+  .win-btn:hover .win-btn-icon { opacity: 1; }
+
+  .win-icon { width: 16px; height: 16px; flex-shrink: 0; }
+  .win-title { font-size: 12.5px; font-weight: 500; color: var(--text); flex: 1; text-align: center; margin-right: 50px; }
+
+  /* Window content */
+  .win-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+
+  /* Resize handle */
+  .resize-handle {
+    position: absolute; bottom: 0; right: 0;
+    width: 12px; height: 12px; cursor: se-resize;
+  }
+
+  /* ── FILE MANAGER ── */
+  .fm-toolbar {
+    display: flex; align-items: center; gap: 4px;
+    padding: 4px 6px;
+    background: rgba(0,0,0,0.2);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    flex-shrink: 0;
+  }
+  .fm-btn {
+    padding: 3px 8px; border-radius: 3px; cursor: pointer;
+    background: transparent; border: none; color: var(--text-muted);
+    font-family: var(--desktop-font); font-size: 12px;
+    transition: background 0.15s, color 0.15s;
+  }
+  .fm-btn:hover { background: var(--hover); color: var(--text); }
+  .fm-addressbar {
+    flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 3px; padding: 3px 8px; color: var(--text);
+    font-family: var(--mono-font); font-size: 12px; outline: none;
+  }
+  .fm-body { display: flex; flex: 1; overflow: hidden; }
+  .fm-sidebar {
+    width: 150px; flex-shrink: 0;
+    background: rgba(0,0,0,0.15);
+    border-right: 1px solid rgba(255,255,255,0.06);
+    overflow-y: auto; padding: 8px 0;
+  }
+  .fm-sidebar-section { padding: 4px 8px 2px; font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .fm-sidebar-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 12px; cursor: pointer;
+    transition: background 0.15s; font-size: 12px; color: var(--text);
+    border-radius: 3px; margin: 1px 4px;
+  }
+  .fm-sidebar-item:hover { background: var(--hover); }
+  .fm-sidebar-item.active { background: var(--active); color: var(--mint-green); }
+  .fm-sidebar-item svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .fm-files {
+    flex: 1; overflow-y: auto; padding: 8px;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 4px;
+    align-content: start;
+  }
+  .fm-file {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 6px 4px; border-radius: 4px; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .fm-file:hover { background: var(--hover); }
+  .fm-file.selected { background: var(--active); }
+  .fm-file svg { width: 36px; height: 36px; }
+  .fm-file span { font-size: 10.5px; text-align: center; color: var(--text); line-height: 1.3; word-break: break-all; }
+  .fm-statusbar {
+    padding: 3px 10px; font-size: 11px; color: var(--text-muted);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    background: rgba(0,0,0,0.15); flex-shrink: 0;
+  }
+
+  /* ── TERMINAL ── */
+  .terminal-body {
+    flex: 1; background: #1a1a1a;
+    font-family: var(--mono-font); font-size: 13px;
+    color: #e0e0e0; overflow-y: auto;
+    padding: 8px;
+  }
+  .terminal-line { display: flex; align-items: baseline; gap: 0; }
+  .terminal-prompt { color: #87b87f; white-space: nowrap; flex-shrink: 0; }
+  .terminal-path { color: #6ab0f5; white-space: nowrap; flex-shrink: 0; }
+  .terminal-dollar { color: #fff; margin: 0 4px; flex-shrink: 0; }
+  .terminal-output { color: #ccc; padding: 1px 0 1px 0; }
+  .terminal-input-line {
+    display: flex; align-items: center; margin-top: 2px;
+  }
+  #terminal-input {
+    flex: 1; background: transparent; border: none; outline: none;
+    font-family: var(--mono-font); font-size: 13px; color: #e0e0e0;
+    caret-color: #87b87f;
+  }
+
+  /* ── TEXT EDITOR ── */
+  .editor-menubar {
+    display: flex; gap: 0;
+    background: rgba(0,0,0,0.2);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    flex-shrink: 0;
+  }
+  .editor-menu-item {
+    padding: 4px 10px; cursor: pointer; font-size: 12px; color: var(--text-muted);
+    transition: background 0.15s, color 0.15s;
+  }
+  .editor-menu-item:hover { background: var(--hover); color: var(--text); }
+  .editor-toolbar {
+    display: flex; align-items: center; gap: 2px;
+    padding: 3px 6px; background: rgba(0,0,0,0.15);
+    border-bottom: 1px solid rgba(255,255,255,0.06); flex-shrink: 0;
+  }
+  .editor-tool-btn {
+    width: 26px; height: 24px; border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: background 0.15s; font-size: 12px; color: var(--text-muted);
+  }
+  .editor-tool-btn:hover { background: var(--hover); color: var(--text); }
+  .editor-tool-sep { width: 1px; height: 18px; background: var(--panel-border); margin: 0 2px; }
+  .editor-area {
+    flex: 1; background: #1e2227; outline: none; border: none; resize: none;
+    font-family: var(--mono-font); font-size: 13px; color: #abb2bf;
+    padding: 12px; line-height: 1.6;
+  }
+  .editor-statusbar {
+    padding: 2px 10px; font-size: 11px; color: var(--text-muted);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    background: rgba(0,0,0,0.15); flex-shrink: 0;
+    display: flex; gap: 16px;
+  }
+
+  /* ── START MENU ── */
+  #start-menu {
+    position: fixed; bottom: 44px; left: 4px;
+    width: 560px; height: 480px;
+    background: rgba(32,36,42,0.97);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    box-shadow: 0 -4px 40px rgba(0,0,0,0.7);
+    z-index: 9500;
+    display: none;
+    overflow: hidden;
+  }
+  #start-menu.open { display: flex; }
+  .menu-left {
+    width: 220px; flex-shrink: 0;
+    border-right: 1px solid rgba(255,255,255,0.07);
+    display: flex; flex-direction: column;
+  }
+  .menu-search-bar {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .menu-search-input {
+    width: 100%; background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.12); border-radius: 4px;
+    padding: 6px 10px; color: var(--text);
+    font-family: var(--desktop-font); font-size: 12.5px; outline: none;
+  }
+  .menu-search-input::placeholder { color: var(--text-muted); }
+  .menu-search-input:focus { border-color: var(--mint-green); }
+  .menu-apps-list { flex: 1; overflow-y: auto; padding: 6px 0; }
+  .menu-app-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 14px; cursor: pointer;
+    transition: background 0.12s;
+  }
+  .menu-app-item:hover { background: var(--hover); }
+  .menu-app-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .menu-app-item span { font-size: 13px; color: var(--text); }
+  .menu-bottom {
+    display: flex; gap: 0;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    padding: 6px;
+  }
+  .menu-bottom-btn {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 6px; border-radius: 4px; cursor: pointer;
+    transition: background 0.15s; font-size: 12px; color: var(--text-muted);
+  }
+  .menu-bottom-btn:hover { background: var(--hover); color: var(--text); }
+  .menu-bottom-btn svg { width: 14px; height: 14px; }
+  .menu-right {
+    flex: 1; display: flex; flex-direction: column; padding: 12px;
+    gap: 8px;
+  }
+  .menu-right-section { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .menu-place {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 8px; border-radius: 4px; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .menu-place:hover { background: var(--hover); }
+  .menu-place svg { width: 16px; height: 16px; }
+  .menu-place span { font-size: 12.5px; color: var(--text); }
+  .menu-user {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    margin-bottom: 8px;
+  }
+  .menu-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg, #87b87f, #5a8a52);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: bold; color: #fff;
+    flex-shrink: 0;
+  }
+  .menu-user-info .name { font-size: 14px; font-weight: 500; }
+  .menu-user-info .type { font-size: 11px; color: var(--text-muted); }
+
+  /* ── CONTEXT MENU ── */
+  #context-menu {
+    position: fixed;
+    background: rgba(40,44,50,0.97);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    z-index: 10000;
+    padding: 4px 0;
+    min-width: 180px;
+    display: none;
+  }
+  #context-menu.open { display: block; }
+  .ctx-item {
+    padding: 6px 16px; cursor: pointer; font-size: 12.5px; color: var(--text);
+    transition: background 0.12s; display: flex; align-items: center; gap: 8px;
+  }
+  .ctx-item:hover { background: var(--hover); }
+  .ctx-item svg { width: 14px; height: 14px; color: var(--text-muted); }
+  .ctx-sep { height: 1px; background: rgba(255,255,255,0.07); margin: 4px 0; }
+
+  /* ── NOTIFICATION ── */
+  #notifications {
+    position: fixed; top: 12px; right: 12px;
+    display: flex; flex-direction: column; gap: 8px;
+    z-index: 9800; pointer-events: none;
+  }
+  .notif {
+    background: rgba(40,44,50,0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px; padding: 12px 14px;
+    width: 300px; pointer-events: all;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    animation: notifIn 0.25s ease;
+    border-left: 3px solid var(--mint-green);
+  }
+  @keyframes notifIn { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: translateX(0); } }
+  .notif-title { font-size: 12.5px; font-weight: 600; margin-bottom: 3px; }
+  .notif-body { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+
+  /* ── SETTINGS ── */
+  .settings-body { display: flex; flex: 1; overflow: hidden; }
+  .settings-sidebar {
+    width: 160px; flex-shrink: 0;
+    background: rgba(0,0,0,0.15);
+    border-right: 1px solid rgba(255,255,255,0.06);
+    overflow-y: auto; padding: 8px 0;
+  }
+  .settings-section { padding: 4px 8px 2px; font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .settings-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 12px; cursor: pointer;
+    transition: background 0.15s; font-size: 12px;
+    border-radius: 3px; margin: 1px 4px;
+  }
+  .settings-item:hover { background: var(--hover); }
+  .settings-item.active { background: var(--active); color: var(--mint-green); }
+  .settings-item svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .settings-content {
+    flex: 1; overflow-y: auto; padding: 20px;
+  }
+  .settings-group { margin-bottom: 24px; }
+  .settings-group h3 { font-size: 14px; font-weight: 500; margin-bottom: 12px; color: var(--mint-green); }
+  .settings-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .settings-row label { font-size: 13px; color: var(--text); }
+  .settings-row small { font-size: 11px; color: var(--text-muted); display: block; margin-top: 1px; }
+  .toggle {
+    width: 36px; height: 20px; background: rgba(255,255,255,0.15);
+    border-radius: 10px; cursor: pointer; position: relative;
+    transition: background 0.2s;
+  }
+  .toggle.on { background: var(--mint-green); }
+  .toggle::after {
+    content: ''; position: absolute;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #fff; top: 2px; left: 2px;
+    transition: transform 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+  .toggle.on::after { transform: translateX(16px); }
+  .settings-select {
+    background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 4px; padding: 4px 8px; color: var(--text);
+    font-family: var(--desktop-font); font-size: 12px; outline: none; cursor: pointer;
+  }
+  .settings-select option { background: #2d3035; }
+  .settings-slider {
+    -webkit-appearance: none; width: 120px; height: 4px;
+    border-radius: 2px; background: rgba(255,255,255,0.15); outline: none; cursor: pointer;
+  }
+  .settings-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 14px; height: 14px;
+    border-radius: 50%; background: var(--mint-green); cursor: pointer;
+  }
+
+  /* ── SCROLLBARS ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+
+  /* ── CALENDAR POPUP ── */
+  #cal-popup {
+    position: fixed; bottom: 44px; right: 4px;
+    width: 240px; background: rgba(36,40,46,0.97);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px; padding: 14px;
+    box-shadow: 0 -4px 30px rgba(0,0,0,0.5);
+    z-index: 9500; display: none;
+  }
+  #cal-popup.open { display: block; }
+  .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .cal-title { font-size: 13px; font-weight: 500; }
+  .cal-nav { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 14px; padding: 2px 6px; border-radius: 3px; }
+  .cal-nav:hover { background: var(--hover); color: var(--text); }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
+  .cal-dow { font-size: 10px; color: var(--text-muted); padding: 2px 0; }
+  .cal-day { font-size: 11.5px; padding: 4px 2px; border-radius: 3px; cursor: pointer; transition: background 0.1s; color: var(--text); }
+  .cal-day:hover { background: var(--hover); }
+  .cal-day.today { background: var(--mint-green); color: #fff; font-weight: 600; }
+  .cal-day.other-month { color: var(--text-muted); }
+  .cal-time { text-align: center; margin-top: 12px; font-size: 22px; font-weight: 300; color: var(--text); }
+
+  /* ── VOLUME POPUP ── */
+  #vol-popup {
+    position: fixed; bottom: 44px; right: 80px;
+    width: 220px; background: rgba(36,40,46,0.97);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px; padding: 14px;
+    box-shadow: 0 -4px 30px rgba(0,0,0,0.5);
+    z-index: 9500; display: none;
+  }
+  #vol-popup.open { display: block; }
+  .vol-label { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; display: flex; justify-content: space-between; }
+  .vol-slider {
+    -webkit-appearance: none; width: 100%; height: 4px;
+    border-radius: 2px; background: rgba(255,255,255,0.15); outline: none; cursor: pointer;
+  }
+  .vol-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 14px; height: 14px;
+    border-radius: 50%; background: var(--mint-green); cursor: pointer;
+  }
+
+  /* ── LOADING SCREEN ── */
+  #boot-screen {
+    position: fixed; inset: 0; z-index: 99999;
+    background: #1a2619;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 24px; transition: opacity 0.6s;
+  }
+  #boot-screen.fadeout { opacity: 0; pointer-events: none; }
+  .boot-logo { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .boot-logo svg { width: 80px; height: 80px; }
+  .boot-logo h1 { font-size: 28px; font-weight: 300; color: #fff; letter-spacing: 2px; }
+  .boot-logo p { font-size: 13px; color: rgba(255,255,255,0.5); letter-spacing: 1px; }
+  .boot-progress {
+    width: 200px; height: 3px; background: rgba(255,255,255,0.1);
+    border-radius: 2px; overflow: hidden;
+  }
+  .boot-bar { height: 100%; background: var(--mint-green); border-radius: 2px; width: 0; transition: width 0.3s; }
+</style>
+</head>
+<body>
+
+<!-- Boot screen -->
+<div id="boot-screen">
+  <div class="boot-logo">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="45" fill="none" stroke="#87b87f" stroke-width="3"/>
+      <circle cx="50" cy="50" r="30" fill="#87b87f" opacity="0.2"/>
+      <text x="50" y="57" text-anchor="middle" font-family="sans-serif" font-size="28" fill="#87b87f" font-weight="bold">M</text>
+    </svg>
+    <h1>Linux Mint</h1>
+    <p>CINNAMON EDITION</p>
+  </div>
+  <div class="boot-progress"><div class="boot-bar" id="boot-bar"></div></div>
+</div>
+
+<!-- Desktop -->
+<div id="desktop">
+  <div id="desktop-overlay"></div>
+
+  <!-- Desktop Icons -->
+  <div class="desktop-icons">
+    <div class="desktop-icon" ondblclick="openApp('files')" onclick="selectIcon(this)">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 7C3 5.9 3.9 5 5 5H9L11 7H19C20.1 7 21 7.9 21 9V17C21 18.1 20.1 19 19 19H5C3.9 19 3 18.1 3 17V7Z" fill="#87b87f" opacity="0.85"/>
+        <path d="M3 9H21" stroke="#5a8a52" stroke-width="1"/>
+      </svg>
+      <span>Home</span>
+    </div>
+    <div class="desktop-icon" ondblclick="openApp('terminal')" onclick="selectIcon(this)">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="3" width="20" height="18" rx="2" fill="#1a1a1a" stroke="#555" stroke-width="1"/>
+        <path d="M6 8L9.5 11.5L6 15" stroke="#87b87f" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M11 15H17" stroke="#87b87f" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <span>Terminal</span>
+    </div>
+    <div class="desktop-icon" ondblclick="openApp('editor')" onclick="selectIcon(this)">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="4" y="2" width="14" height="18" rx="2" fill="#4a90d9" opacity="0.8"/>
+        <rect x="6" y="4" width="10" height="16" rx="1" fill="#2a5a9f" opacity="0.6"/>
+        <path d="M7 7H15M7 10H15M7 13H12" stroke="#8bbcf0" stroke-width="1" stroke-linecap="round"/>
+        <path d="M16 16L19 18L16 20" stroke="#f90" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <span>Text Editor</span>
+    </div>
+    <div class="desktop-icon" ondblclick="openApp('settings')" onclick="selectIcon(this)">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" fill="#aaa"/>
+        <path d="M19.4 15C19.1 15.6 19.3 16.3 19.8 16.8L19.9 16.9C20.3 17.3 20.3 17.9 19.9 18.3L18.3 19.9C17.9 20.3 17.3 20.3 16.9 19.9L16.8 19.8C16.3 19.3 15.6 19.1 15 19.4C14.4 19.7 14 20.3 14 21V21.1C14 21.6 13.6 22 13.1 22H10.9C10.4 22 10 21.6 10 21.1V21C10 20.3 9.6 19.7 9 19.4C8.4 19.1 7.7 19.3 7.2 19.8L7.1 19.9C6.7 20.3 6.1 20.3 5.7 19.9L4.1 18.3C3.7 17.9 3.7 17.3 4.1 16.9L4.2 16.8C4.7 16.3 4.9 15.6 4.6 15C4.3 14.4 3.7 14 3 14H2.9C2.4 14 2 13.6 2 13.1V10.9C2 10.4 2.4 10 2.9 10H3C3.7 10 4.3 9.6 4.6 9C4.9 8.4 4.7 7.7 4.2 7.2L4.1 7.1C3.7 6.7 3.7 6.1 4.1 5.7L5.7 4.1C6.1 3.7 6.7 3.7 7.1 4.1L7.2 4.2C7.7 4.7 8.4 4.9 9 4.6C9.6 4.3 10 3.7 10 3V2.9C10 2.4 10.4 2 10.9 2H13.1C13.6 2 14 2.4 14 2.9V3C14 3.7 14.4 4.3 15 4.6C15.6 4.9 16.3 4.7 16.8 4.2L16.9 4.1C17.3 3.7 17.9 3.7 18.3 4.1L19.9 5.7C20.3 6.1 20.3 6.7 19.9 7.1L19.8 7.2C19.3 7.7 19.1 8.4 19.4 9C19.7 9.6 20.3 10 21 10H21.1C21.6 10 22 10.4 22 10.9V13.1C22 13.6 21.6 14 21.1 14H21C20.3 14 19.7 14.4 19.4 15Z" fill="#aaa" opacity="0.7"/>
+      </svg>
+      <span>Settings</span>
+    </div>
+  </div>
+
+  <!-- Windows container -->
+  <div id="windows"></div>
+
+  <!-- Context Menu -->
+  <div id="context-menu">
+    <div class="ctx-item" onclick="openApp('files');closeCtx()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>Open Files</div>
+    <div class="ctx-item" onclick="openApp('terminal');closeCtx()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 14H6v-2h12v2zm0-4H6v-2h12v2zm0-4H6V7h12v2z"/></svg>Open Terminal Here</div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item" onclick="closeCtx()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm-1 14H9V7h2v10zm4 0h-2V7h2v10z"/></svg>Change Background</div>
+    <div class="ctx-item" onclick="openApp('settings');closeCtx()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>Display Settings</div>
+  </div>
+
+  <!-- Calendar -->
+  <div id="cal-popup">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="calNav(-1)">‹</button>
+      <span class="cal-title" id="cal-title"></span>
+      <button class="cal-nav" onclick="calNav(1)">›</button>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="cal-time" id="cal-clock"></div>
+  </div>
+
+  <!-- Volume popup -->
+  <div id="vol-popup">
+    <div class="vol-label"><span>Output Volume</span><span id="vol-pct">75%</span></div>
+    <input type="range" class="vol-slider" id="vol-slider" min="0" max="100" value="75" oninput="updateVol(this.value)">
+    <div class="vol-label" style="margin-top:10px"><span>Microphone</span><span>100%</span></div>
+    <input type="range" class="vol-slider" min="0" max="100" value="100" style="margin-top:4px">
+  </div>
+
+  <!-- Notifications -->
+  <div id="notifications"></div>
+
+  <!-- Start Menu -->
+  <div id="start-menu">
+    <div class="menu-left">
+      <div class="menu-search-bar">
+        <input type="text" class="menu-search-input" placeholder="Type to search…" oninput="filterMenu(this.value)" id="menu-search">
+      </div>
+      <div class="menu-apps-list" id="menu-apps-list"></div>
+      <div class="menu-bottom">
+        <div class="menu-bottom-btn" onclick="showNotif('Lock Screen','Screen locked')">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+          Lock
+        </div>
+        <div class="menu-bottom-btn" onclick="showNotif('Logging out…','Goodbye!')">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+          Log Out
+        </div>
+        <div class="menu-bottom-btn" onclick="showNotif('Shutting down…','Goodbye!')">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z"/></svg>
+          Power
+        </div>
+      </div>
+    </div>
+    <div class="menu-right">
+      <div class="menu-user">
+        <div class="menu-avatar">U</div>
+        <div class="menu-user-info">
+          <div class="name">user</div>
+          <div class="type">Standard Account</div>
+        </div>
+      </div>
+      <div class="menu-right-section">Places</div>
+      <div class="menu-place" onclick="openApp('files');toggleMenu()"><svg viewBox="0 0 24 24" fill="#87b87f"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Home Folder</span></div>
+      <div class="menu-place" onclick="openApp('files');toggleMenu()"><svg viewBox="0 0 24 24" fill="#6ab0f5"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg><span>Documents</span></div>
+      <div class="menu-place" onclick="openApp('files');toggleMenu()"><svg viewBox="0 0 24 24" fill="#e8a838"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg><span>Downloads</span></div>
+      <div class="menu-place" onclick="showNotif('Computer','Opening system view…');toggleMenu()"><svg viewBox="0 0 24 24" fill="#aaa"><path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/></svg><span>Computer</span></div>
+    </div>
+  </div>
+
+  <!-- Taskbar -->
+  <div id="taskbar">
+    <div id="menu-btn" onclick="toggleMenu()">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+      <span>Menu</span>
+    </div>
+    <div class="tb-sep"></div>
+    <div id="pinned-apps">
+      <div class="pinned-app" title="Files" onclick="openApp('files')">
+        <svg viewBox="0 0 24 24" fill="#87b87f" width="20" height="20"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+      </div>
+      <div class="pinned-app" title="Terminal" onclick="openApp('terminal')">
+        <svg viewBox="0 0 24 24" fill="#87b87f" width="20" height="20"><path d="M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 14H6v-2h12v2zm0-4H6v-2h12v2zm0-4H6V7h12v2z"/></svg>
+      </div>
+      <div class="pinned-app" title="Text Editor" onclick="openApp('editor')">
+        <svg viewBox="0 0 24 24" fill="#6ab0f5" width="20" height="20"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>
+      </div>
+      <div class="pinned-app" title="Settings" onclick="openApp('settings')">
+        <svg viewBox="0 0 24 24" fill="#aaa" width="20" height="20"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+      </div>
+    </div>
+    <div class="tb-sep"></div>
+    <div id="open-windows"></div>
+
+    <!-- Systray -->
+    <div id="systray">
+      <div class="tray-icon" title="Network" onclick="showNotif('Network','Connected to Wired Network — 1 Gbps')">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+      </div>
+      <div class="tray-icon" title="Volume" onclick="togglePopup('vol-popup')">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+      </div>
+      <div class="tray-icon" title="Battery" onclick="showNotif('Battery','97% — Plugged in, charging')">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4zM11 18v-3H9l4-7v4h2l-4 6z"/></svg>
+      </div>
+      <div class="tray-icon" title="Updates" onclick="showNotif('Update Manager','Your system is up to date.')">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+      </div>
+      <div id="clock" onclick="togglePopup('cal-popup')">
+        <span class="time" id="clock-time">00:00</span>
+        <span class="date" id="clock-date">Mon 01 Jan</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let zTop = 200;
+let windows = {};
+let focused = null;
+let calDate = new Date();
+
+// ── BOOT ──
+const bar = document.getElementById('boot-bar');
+let prog = 0;
+const bootInt = setInterval(() => {
+  prog += Math.random() * 18 + 5;
+  if (prog >= 100) {
+    prog = 100; clearInterval(bootInt);
+    setTimeout(() => {
+      document.getElementById('boot-screen').classList.add('fadeout');
+      setTimeout(() => { document.getElementById('boot-screen').remove(); showNotif('Welcome to Linux Mint', 'Cinnamon 6.0 — Ready'); }, 650);
+    }, 300);
+  }
+  bar.style.width = prog + '%';
+}, 160);
+
+// ── CLOCK ──
+function updateClock() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  document.getElementById('clock-time').textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('clock-date').textContent = `${days[now.getDay()]} ${pad(now.getDate())} ${months[now.getMonth()]}`;
+  document.getElementById('cal-clock').textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+}
+updateClock(); setInterval(updateClock, 1000);
+
+// ── CALENDAR ──
+function renderCal() {
+  const y = calDate.getFullYear(), m = calDate.getMonth();
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-title').textContent = `${months[m]} ${y}`;
+  const first = new Date(y,m,1).getDay();
+  const days = new Date(y,m+1,0).getDate();
+  const today = new Date();
+  let html = ['Su','Mo','Tu','We','Th','Fr','Sa'].map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for(let i=0;i<first;i++) {
+    const d = new Date(y,m,-(first-i-1));
+    html += `<div class="cal-day other-month">${d.getDate()}</div>`;
+  }
+  for(let d=1;d<=days;d++) {
+    const isToday = d===today.getDate()&&m===today.getMonth()&&y===today.getFullYear();
+    html += `<div class="cal-day${isToday?' today':''}">${d}</div>`;
+  }
+  document.getElementById('cal-grid').innerHTML = html;
+}
+function calNav(dir) { calDate.setMonth(calDate.getMonth()+dir); renderCal(); }
+renderCal();
+
+// ── VOLUME ──
+function updateVol(v) {
+  document.getElementById('vol-pct').textContent = v + '%';
+}
+
+// ── POPUPS ──
+function togglePopup(id) {
+  const el = document.getElementById(id);
+  const open = el.classList.contains('open');
+  document.querySelectorAll('#cal-popup,#vol-popup,#start-menu').forEach(e=>e.classList.remove('open'));
+  if(!open) el.classList.add('open');
+}
+document.addEventListener('click', e => {
+  if(!e.target.closest('#cal-popup,#clock,#vol-popup,.tray-icon[title="Volume"],#start-menu,#menu-btn'))
+    document.querySelectorAll('#cal-popup,#vol-popup,#start-menu').forEach(e=>e.classList.remove('open'));
+  if(!e.target.closest('#context-menu')) closeCtx();
+});
+
+// ── START MENU ──
+const allApps = [
+  { id:'files', label:'Files', color:'#87b87f', icon:'M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z' },
+  { id:'terminal', label:'Terminal', color:'#87b87f', icon:'M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 14H6v-2h12v2zm0-4H6v-2h12v2zm0-4H6V7h12v2z' },
+  { id:'editor', label:'Text Editor', color:'#6ab0f5', icon:'M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z' },
+  { id:'settings', label:'System Settings', color:'#aaa', icon:'M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z' },
+];
+function buildMenuList(filter='') {
+  const list = document.getElementById('menu-apps-list');
+  const filtered = filter ? allApps.filter(a=>a.label.toLowerCase().includes(filter.toLowerCase())) : allApps;
+  list.innerHTML = filtered.map(a=>`
+    <div class="menu-app-item" onclick="openApp('${a.id}');toggleMenu()">
+      <svg viewBox="0 0 24 24" fill="${a.color}" width="18" height="18"><path d="${a.icon}"/></svg>
+      <span>${a.label}</span>
+    </div>
+  `).join('');
+}
+function filterMenu(v) { buildMenuList(v); }
+function toggleMenu() {
+  const m = document.getElementById('start-menu');
+  const open = m.classList.contains('open');
+  document.querySelectorAll('#cal-popup,#vol-popup').forEach(e=>e.classList.remove('open'));
+  m.classList.toggle('open');
+  if(!open) { buildMenuList(); document.getElementById('menu-search').value=''; document.getElementById('menu-search').focus(); }
+}
+buildMenuList();
+
+// ── CONTEXT MENU ──
+document.getElementById('desktop').addEventListener('contextmenu', e => {
+  if(e.target.closest('.window,.taskbar,#start-menu')) return;
+  e.preventDefault();
+  const ctx = document.getElementById('context-menu');
+  ctx.style.left = Math.min(e.clientX, window.innerWidth-190) + 'px';
+  ctx.style.top = Math.min(e.clientY, window.innerHeight-200) + 'px';
+  ctx.classList.add('open');
+});
+function closeCtx() { document.getElementById('context-menu').classList.remove('open'); }
+
+// ── DESKTOP ICON SELECTION ──
+function selectIcon(el) {
+  document.querySelectorAll('.desktop-icon').forEach(i=>i.classList.remove('selected'));
+  el.classList.add('selected');
+}
+document.getElementById('desktop').addEventListener('click', e => {
+  if(!e.target.closest('.desktop-icon')) document.querySelectorAll('.desktop-icon').forEach(i=>i.classList.remove('selected'));
+});
+
+// ── NOTIFICATIONS ──
+function showNotif(title, body) {
+  const container = document.getElementById('notifications');
+  const el = document.createElement('div');
+  el.className = 'notif';
+  el.innerHTML = `<div class="notif-title">${title}</div><div class="notif-body">${body}</div>`;
+  container.appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateX(20px)'; el.style.transition='all 0.3s'; setTimeout(()=>el.remove(),300); }, 4000);
+}
+
+// ── WINDOW MANAGEMENT ──
+function focusWindow(id) {
+  if(focused===id) return;
+  document.querySelectorAll('.window').forEach(w=>w.classList.remove('focused'));
+  const win = document.getElementById('win-'+id);
+  if(win) { win.classList.add('focused'); win.style.zIndex = ++zTop; focused = id; }
+  document.querySelectorAll('.window-btn').forEach(b=>b.classList.remove('active'));
+  const btn = document.getElementById('tb-'+id);
+  if(btn) btn.classList.add('active');
+}
+function minimizeWindow(id) {
+  const win = document.getElementById('win-'+id);
+  if(!win) return;
+  const wasMin = win.classList.contains('minimized');
+  win.classList.toggle('minimized');
+  if(wasMin) focusWindow(id);
+  else { focused = null; document.getElementById('tb-'+id)?.classList.remove('active'); }
+}
+function maximizeWindow(id) {
+  const win = document.getElementById('win-'+id);
+  if(!win) return;
+  if(win.classList.contains('maximized')) {
+    win.classList.remove('maximized');
+    const s = windows[id].savedPos;
+    if(s) { win.style.left=s.left; win.style.top=s.top; win.style.width=s.width; win.style.height=s.height; }
+  } else {
+    windows[id].savedPos = { left:win.style.left, top:win.style.top, width:win.style.width, height:win.style.height };
+    win.classList.add('maximized');
+  }
+}
+function closeWindow(id) {
+  const win = document.getElementById('win-'+id);
+  if(win) win.remove();
+  document.getElementById('tb-'+id)?.remove();
+  delete windows[id];
+  focused = null;
+  document.querySelectorAll('.pinned-app').forEach(p => {
+    if(p.dataset.app === id) p.classList.remove('running');
+  });
+}
+
+function createWindow(id, title, width, height, x, y, contentFn, iconPath) {
+  if(windows[id]) { const e=document.getElementById('win-'+id); e?.classList.remove('minimized'); focusWindow(id); return; }
+  windows[id] = { id, title };
+  const win = document.createElement('div');
+  win.className = 'window focused';
+  win.id = 'win-'+id;
+  win.style.cssText = `left:${x}px;top:${y}px;width:${width}px;height:${height}px;z-index:${++zTop}`;
+  win.innerHTML = `
+    <div class="titlebar" id="tb-drag-${id}">
+      <div class="win-controls">
+        <button class="win-btn close" onclick="closeWindow('${id}')"><i class="win-btn-icon">✕</i></button>
+        <button class="win-btn minimize" onclick="minimizeWindow('${id}')"><i class="win-btn-icon">−</i></button>
+        <button class="win-btn maximize" onclick="maximizeWindow('${id}')"><i class="win-btn-icon">+</i></button>
+      </div>
+      <svg class="win-icon" viewBox="0 0 24 24" fill="#aaa"><path d="${iconPath}"/></svg>
+      <div class="win-title">${title}</div>
+    </div>
+    <div class="win-content" id="wc-${id}">${contentFn()}</div>
+    <div class="resize-handle" id="rh-${id}"></div>
+  `;
+  document.getElementById('windows').appendChild(win);
+  win.addEventListener('mousedown', () => focusWindow(id));
+  makeDraggable(win, document.getElementById('tb-drag-'+id));
+  makeResizable(win, document.getElementById('rh-'+id));
+  addWindowBtn(id, title, iconPath);
+  focusWindow(id);
+  if(id==='terminal') initTerminal();
+}
+
+function addWindowBtn(id, title, iconPath) {
+  const bar = document.getElementById('open-windows');
+  const btn = document.createElement('div');
+  btn.className = 'window-btn active'; btn.id = 'tb-'+id;
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="#87b87f" width="16" height="16"><path d="${iconPath}"/></svg><span>${title}</span>`;
+  btn.addEventListener('click', () => {
+    const win = document.getElementById('win-'+id);
+    if(!win) return;
+    if(focused===id && !win.classList.contains('minimized')) minimizeWindow(id);
+    else { win.classList.remove('minimized'); focusWindow(id); }
+  });
+  bar.appendChild(btn);
+}
+
+// ── DRAG & RESIZE ──
+function makeDraggable(win, handle) {
+  let dx,dy,dragging=false;
+  handle.addEventListener('mousedown', e => {
+    if(e.target.closest('.win-controls')) return;
+    if(win.classList.contains('maximized')) return;
+    dragging=true; dx=e.clientX-win.offsetLeft; dy=e.clientY-win.offsetTop;
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', e => {
+    if(!dragging) return;
+    win.style.left = Math.max(0,Math.min(window.innerWidth-win.offsetWidth,e.clientX-dx))+'px';
+    win.style.top = Math.max(0,Math.min(window.innerHeight-win.offsetHeight-40,e.clientY-dy))+'px';
+  });
+  document.addEventListener('mouseup', () => dragging=false);
+  handle.addEventListener('dblclick', () => maximizeWindow(win.id.replace('win-','')));
+}
+function makeResizable(win, handle) {
+  let sx,sy,sw,sh,resizing=false;
+  handle.addEventListener('mousedown', e => {
+    resizing=true; sx=e.clientX; sy=e.clientY; sw=win.offsetWidth; sh=win.offsetHeight;
+    e.preventDefault(); e.stopPropagation();
+  });
+  document.addEventListener('mousemove', e => {
+    if(!resizing) return;
+    win.style.width = Math.max(300,sw+e.clientX-sx)+'px';
+    win.style.height = Math.max(200,sh+e.clientY-sy)+'px';
+  });
+  document.addEventListener('mouseup', () => resizing=false);
+}
+
+// ── APP: FILES ──
+const fsTree = {
+  '~': ['Documents','Downloads','Pictures','Music','Videos','.bashrc','.profile'],
+  '~/Documents': ['notes.txt','project.md','resume.pdf'],
+  '~/Downloads': ['linux-mint-21.3.iso','setup.sh'],
+  '~/Pictures': ['wallpaper.jpg','screenshot.png'],
+  '~/Music': ['favorites.m3u'],
+  '~/Videos': ['demo.mp4'],
+};
+let fsCwd = '~';
+
+function filesContent() {
+  return `
+    <div class="fm-toolbar">
+      <button class="fm-btn" onclick="fmBack()">‹ Back</button>
+      <button class="fm-btn" onclick="fmUp()">↑ Up</button>
+      <input type="text" class="fm-addressbar" id="fm-addr" value="${fsCwd}" onkeydown="if(event.key==='Enter')fmNav(this.value)">
+      <button class="fm-btn" onclick="fmNav(document.getElementById('fm-addr').value)">Go</button>
+    </div>
+    <div class="fm-body">
+      <div class="fm-sidebar">
+        <div class="fm-sidebar-section">Bookmarks</div>
+        ${[['~','Home','M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z'],['~/Documents','Documents','M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6z'],['~/Downloads','Downloads','M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z'],['~/Pictures','Pictures','M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'],['~/Music','Music','M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z']].map(([path,label,icon])=>`
+          <div class="fm-sidebar-item${fsCwd===path?' active':''}" onclick="fmNav('${path}')">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="${icon}"/></svg>${label}
+          </div>`).join('')}
+        <div class="fm-sidebar-section" style="margin-top:8px">Devices</div>
+        <div class="fm-sidebar-item" onclick="showNotif('Device','Root filesystem mounted at /')">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4z"/></svg>Filesystem
+        </div>
+      </div>
+      <div class="fm-files" id="fm-files-grid"></div>
+    </div>
+    <div class="fm-statusbar" id="fm-status"></div>
+  `;
+}
+
+let fsHistory = [];
+function fmRender() {
+  const grid = document.getElementById('fm-files-grid');
+  const addr = document.getElementById('fm-addr');
+  const stat = document.getElementById('fm-status');
+  if(!grid) return;
+  addr && (addr.value = fsCwd);
+  const items = fsTree[fsCwd] || [];
+  const isDir = name => fsTree[fsCwd+'/'+name] !== undefined || fsTree['~/'+name] !== undefined || (!name.includes('.'));
+
+  const folderIcon = `<svg viewBox="0 0 24 24" width="36" height="36"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" fill="#87b87f" opacity="0.85"/></svg>`;
+  const fileIcon = ext => {
+    const colors = {txt:'#6ab0f5',md:'#e8a838',pdf:'#e84040',sh:'#87b87f',iso:'#9f87f5',jpg:'#f5a623',png:'#f5a623',mp3:'#ff7eb6',m3u:'#ff7eb6',mp4:'#ff7eb6'};
+    const c = colors[ext] || '#aaa';
+    return `<svg viewBox="0 0 24 24" width="36" height="36"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6z" fill="${c}" opacity="0.8"/><path d="M14 2v6h6" fill="none" stroke="${c}" stroke-width="1"/></svg>`;
+  };
+
+  grid.innerHTML = items.map(name => {
+    const ext = name.split('.').pop().toLowerCase();
+    const dir = !name.includes('.');
+    const icon = dir ? folderIcon : fileIcon(ext);
+    return `<div class="fm-file" ondblclick="fmOpen('${name}')" onclick="fmSelect(this)">${icon}<span>${name}</span></div>`;
+  }).join('');
+  stat && (stat.textContent = `${items.length} items`);
+}
+
+function fmNav(path) {
+  fsHistory.push(fsCwd);
+  fsCwd = path;
+  const wc = document.getElementById('wc-files');
+  if(wc) { wc.innerHTML = filesContent(); fmRender(); }
+}
+function fmBack() { if(fsHistory.length) { fsCwd = fsHistory.pop(); const wc=document.getElementById('wc-files'); if(wc){wc.innerHTML=filesContent();fmRender();} } }
+function fmUp() { if(fsCwd!=='~') fmNav('~'); }
+function fmSelect(el) { document.querySelectorAll('.fm-file').forEach(f=>f.classList.remove('selected')); el.classList.add('selected'); }
+function fmOpen(name) {
+  const newPath = fsCwd+'/'+name;
+  if(fsTree[newPath]) fmNav(newPath);
+  else showNotif('File Manager', `Opening ${name}…`);
+}
+
+// ── APP: TERMINAL ──
+const terminalHistory = [];
+let termHistIdx = -1;
+let termLines = [];
+
+function terminalContent() {
+  return `
+    <div class="terminal-body" id="term-body">
+      <div class="terminal-output">Linux Mint 21.3 Virginia — Cinnamon 6.0</div>
+      <div class="terminal-output">Type <span style="color:#87b87f">help</span> for available commands.</div>
+      <div class="terminal-output"> </div>
+    </div>
+    <div class="terminal-input-line" style="background:#1a1a1a;padding:4px 8px;border-top:1px solid #333">
+      <span class="terminal-prompt" style="color:#87b87f;font-family:var(--mono-font);font-size:13px">user@mint</span>
+      <span class="terminal-path" style="color:#6ab0f5;font-family:var(--mono-font);font-size:13px">:~</span>
+      <span class="terminal-dollar" style="font-family:var(--mono-font);font-size:13px;margin:0 4px">$</span>
+      <input id="terminal-input" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=" ">
+    </div>
+  `;
+}
+
+let termCwd = '~';
+const termFS = {
+  '~': ['Documents','Downloads','Pictures','Music','Videos','.bashrc'],
+  '~/Documents': ['notes.txt','project.md'],
+  '~/Downloads': ['linux-mint-21.3.iso','setup.sh'],
+};
+
+const termCmds = {
+  help: () => `Available commands:\n  ls, cd [dir], pwd, cat [file], echo [text]\n  date, uname, whoami, clear, neofetch\n  mkdir [dir], touch [file], rm [file]\n  top, ps, df, free, history`,
+  ls: (args) => {
+    const path = args[0] ? termCwd+'/'+args[0] : termCwd;
+    const items = termFS[path] || termFS[termCwd] || [];
+    return items.map(i=>termFS[termCwd+'/'+i]?`<span style="color:#87b87f;font-weight:bold">${i}</span>`:i).join('  ');
+  },
+  pwd: () => termCwd.replace('~','/home/user'),
+  cd: (args) => {
+    const target = args[0] || '~';
+    if(target==='..') { termCwd='~'; return ''; }
+    if(target==='~' || target==='/home/user') { termCwd='~'; return ''; }
+    const newPath = target.startsWith('/')? target : termCwd+'/'+target;
+    if(termFS[newPath]) { termCwd=newPath; return ''; }
+    if(termFS[termCwd+'/'+target]) { termCwd=termCwd+'/'+target; return ''; }
+    return `cd: ${target}: No such file or directory`;
+  },
+  cat: (args) => {
+    if(!args[0]) return 'cat: missing file operand';
+    const contents = {'.bashrc':'# ~/.bashrc\nexport EDITOR=nano\nalias ll="ls -la"\nalias la="ls -A"','notes.txt':'Todo:\n- Update system\n- Write documentation\n- Review pull requests','project.md':'# My Project\n\nA cool project written in Python.\n\n## Usage\n\n```\npython main.py\n```'};
+    return contents[args[0]] || `cat: ${args[0]}: No such file or directory`;
+  },
+  echo: (args) => args.join(' '),
+  date: () => new Date().toString(),
+  uname: (args) => args[0]==='-a' ? 'Linux mint 5.15.0-91-generic #101-Ubuntu SMP x86_64 GNU/Linux' : 'Linux',
+  whoami: () => 'user',
+  clear: () => { document.getElementById('term-body').innerHTML = ''; return null; },
+  neofetch: () => `<span style="color:#87b87f">
+         ..          </span> user@mint
+       .PLTJ.        <span style="color:#87b87f">─────────────</span>
+      <CLT>.6BU:      OS: Linux Mint 21.3 Virginia
+     <Cff;&lt;NNJy:     Kernel: 5.15.0-91-generic
+     ;:9&lt;;&amp;9 T&lt;:. .   Shell: bash 5.1.16
+     .&lt;;= T. .9&lt;. :    Resolution: 1920×1080
+      :..  ;=.;:     DE: Cinnamon 6.0
+           :&lt;       WM: Mutter (Muffin)
+                     CPU: Intel i5-12400 (12) @ 4.4GHz
+                     Memory: 3.1GiB / 16.0GiB`,
+  mkdir: (args) => { if(!args[0]) return 'mkdir: missing operand'; termFS[termCwd] = termFS[termCwd]||[]; if(!termFS[termCwd].includes(args[0])) termFS[termCwd].push(args[0]); termFS[termCwd+'/'+args[0]]=[]; return ''; },
+  touch: (args) => { if(!args[0]) return 'touch: missing operand'; termFS[termCwd]=termFS[termCwd]||[]; if(!termFS[termCwd].includes(args[0])) termFS[termCwd].push(args[0]); return ''; },
+  rm: (args) => { if(!args[0]) return 'rm: missing operand'; termFS[termCwd]=termFS[termCwd]?.filter(i=>i!==args[0])||[]; return ''; },
+  top: () => `Tasks: 182 total, 1 running, 181 sleeping\nCPU: 3.2% us, 0.8% sy\nMem: 3200MiB / 16384MiB`,
+  ps: () => `  PID TTY   STAT  TIME COMMAND\n  1   ?     Ss    0:01 /sbin/init\n  889 ?     Ssl   0:12 cinnamon --replace\n  1203 pts/0 Ss    0:00 bash\n  2041 pts/0 R+    0:00 ps`,
+  df: () => `Filesystem     1K-blocks    Used Available Use% Mounted on\n/dev/sda1      488386584 48291004 415268696  11% /\ntmpfs            8192000     1044   8190956   1% /dev/shm`,
+  free: () => `              total    used    free   shared\nMem:       16777216  3276800 13500416    49152\nSwap:       8388608        0  8388608`,
+  history: () => terminalHistory.map((c,i)=>`  ${i+1}  ${c}`).join('\n'),
+};
+
+function initTerminal() {
+  const input = document.getElementById('terminal-input');
+  if(!input) return;
+  input.focus();
+  input.addEventListener('keydown', e => {
+    if(e.key==='Enter') {
+      const cmd = input.value.trim();
+      input.value = '';
+      if(!cmd) { appendTermLine(''); return; }
+      terminalHistory.unshift(cmd); termHistIdx=-1;
+      appendTermPromptLine(cmd);
+      const parts = cmd.split(' ');
+      const fn = termCmds[parts[0]];
+      if(fn) {
+        const out = fn(parts.slice(1));
+        if(out===null) return;
+        if(out) out.split('\n').forEach(l=>appendTermOutput(l));
+      } else {
+        appendTermOutput(`${parts[0]}: command not found`);
+      }
+      appendTermLine('');
+    } else if(e.key==='ArrowUp') {
+      termHistIdx = Math.min(termHistIdx+1, terminalHistory.length-1);
+      input.value = terminalHistory[termHistIdx]||'';
+      e.preventDefault();
+    } else if(e.key==='ArrowDown') {
+      termHistIdx = Math.max(termHistIdx-1,-1);
+      input.value = termHistIdx>=0 ? terminalHistory[termHistIdx] : '';
+      e.preventDefault();
+    }
+  });
+}
+
+function appendTermPromptLine(cmd) {
+  const b = document.getElementById('term-body');
+  if(!b) return;
+  const cwd = termCwd===('~') ? '~' : termCwd.split('/').pop();
+  const line = document.createElement('div');
+  line.className='terminal-line';
+  line.innerHTML = `<span class="terminal-prompt">user@mint</span><span class="terminal-path">:${cwd}</span><span class="terminal-dollar">$</span><span style="font-family:var(--mono-font);font-size:13px"> ${cmd}</span>`;
+  b.appendChild(line); b.scrollTop=b.scrollHeight;
+}
+function appendTermOutput(html) {
+  const b = document.getElementById('term-body');
+  if(!b) return;
+  const line = document.createElement('div');
+  line.className='terminal-output';
+  line.innerHTML = html;
+  b.appendChild(line); b.scrollTop=b.scrollHeight;
+}
+function appendTermLine(text) {
+  const b = document.getElementById('term-body');
+  if(!b) return;
+  const line = document.createElement('div');
+  line.className='terminal-output';
+  line.innerHTML = text;
+  b.appendChild(line); b.scrollTop=b.scrollHeight;
+}
+
+// ── APP: TEXT EDITOR ──
+function editorContent() {
+  return `
+    <div class="editor-menubar">
+      ${['File','Edit','View','Search','Tools','Help'].map(m=>`<div class="editor-menu-item">${m}</div>`).join('')}
+    </div>
+    <div class="editor-toolbar">
+      <div class="editor-tool-btn" title="New" onclick="edNew()">🗋</div>
+      <div class="editor-tool-btn" title="Open">📂</div>
+      <div class="editor-tool-btn" title="Save" onclick="showNotif('Text Editor','File saved')">💾</div>
+      <div class="editor-tool-sep"></div>
+      <div class="editor-tool-btn" title="Cut">✂</div>
+      <div class="editor-tool-btn" title="Copy">⎘</div>
+      <div class="editor-tool-btn" title="Paste">📋</div>
+      <div class="editor-tool-sep"></div>
+      <div class="editor-tool-btn" title="Undo">↩</div>
+      <div class="editor-tool-btn" title="Redo">↪</div>
+    </div>
+    <textarea class="editor-area" id="editor-area" spellcheck="false"># Welcome to Text Editor
+
+This is a fully functional text editor.
+You can type, edit, and format your text here.
+
+## Features
+- Syntax highlighting (coming soon)
+- Multiple tabs
+- Find and replace
+
+Start typing below...
+</textarea>
+    <div class="editor-statusbar">
+      <span id="editor-pos">Ln 1, Col 1</span>
+      <span>UTF-8</span>
+      <span>Unix (LF)</span>
+      <span id="editor-wc">Words: 0</span>
+    </div>
+  `;
+}
+function edNew() {
+  const ea = document.getElementById('editor-area');
+  if(ea) ea.value='';
+}
+// ── APP: SETTINGS ──
+function settingsContent() {
+  return `
+    <div class="settings-body">
+      <div class="settings-sidebar">
+        <div class="settings-section">Appearance</div>
+        ${[['Themes','M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'],['Backgrounds','M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'],['Fonts','M9 4v3h5v12h3V7h5V4H9zm-6 8h3v7h3v-7h3V9H3v3z']].map(([l,i])=>`<div class="settings-item${l==='Themes'?' active':''}" onclick="settingsSelect(this,'${l}')">${svgIcon(i,14)}${l}</div>`).join('')}
+        <div class="settings-section" style="margin-top:8px">Hardware</div>
+        ${[['Display','M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4z'],['Sound','M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z'],['Power','M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5z'],['Network','M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9z']].map(([l,i])=>`<div class="settings-item" onclick="settingsSelect(this,'${l}')">${svgIcon(i,14)}${l}</div>`).join('')}
+        <div class="settings-section" style="margin-top:8px">System</div>
+        ${[['General','M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z'],['Users','M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z']].map(([l,i])=>`<div class="settings-item" onclick="settingsSelect(this,'${l}')">${svgIcon(i,14)}${l}</div>`).join('')}
+      </div>
+      <div class="settings-content" id="settings-content">
+        <div class="settings-group">
+          <h3>Themes</h3>
+          <div class="settings-row"><div><label>Desktop Theme</label><small>Controls the look of windows and widgets</small></div><select class="settings-select"><option>Mint-Y-Dark</option><option>Mint-Y</option><option>Adwaita</option></select></div>
+          <div class="settings-row"><div><label>Icon Theme</label><small>Icons used across the desktop</small></div><select class="settings-select"><option>Mint-Y</option><option>Papirus</option><option>Adwaita</option></select></div>
+          <div class="settings-row"><div><label>Cursor Theme</label></div><select class="settings-select"><option>Bibata-Modern-Classic</option><option>DMZ-White</option></select></div>
+        </div>
+        <div class="settings-group">
+          <h3>Interface</h3>
+          <div class="settings-row"><div><label>Animations</label><small>Enable window animations</small></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+          <div class="settings-row"><div><label>Dark Mode</label><small>Use dark variant of theme</small></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+          <div class="settings-row"><div><label>Transparency</label><small>Panel and menu transparency</small></div><input type="range" class="settings-slider" min="0" max="100" value="80"></div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+function svgIcon(path, size=16) {
+  return `<svg viewBox="0 0 24 24" fill="currentColor" width="${size}" height="${size}" style="flex-shrink:0"><path d="${path}"/></svg>`;
+}
+function settingsSelect(el, name) {
+  document.querySelectorAll('.settings-item').forEach(i=>i.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ── OPEN APPS ──
+let winOffsetX = 40, winOffsetY = 40;
+function openApp(id) {
+  const configs = {
+    files: { title:'Files', w:720, h:480, icon:'M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z', fn: filesContent },
+    terminal: { title:'Terminal', w:650, h:400, icon:'M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 14H6v-2h12v2zm0-4H6v-2h12v2zm0-4H6V7h12v2z', fn: terminalContent },
+    editor: { title:'Text Editor', w:680, h:500, icon:'M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z', fn: editorContent },
+    settings: { title:'System Settings', w:700, h:460, icon:'M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z', fn: settingsContent },
+  };
+  const cfg = configs[id];
+  if(!cfg) return;
+  const x = Math.min(60 + (winOffsetX % 200), window.innerWidth - cfg.w - 20);
+  const y = Math.min(40 + (winOffsetY % 160), window.innerHeight - cfg.h - 60);
+  winOffsetX += 24; winOffsetY += 24;
+  createWindow(id, cfg.title, cfg.w, cfg.h, x, y, cfg.fn, cfg.icon);
+  if(id==='files') setTimeout(fmRender, 50);
+  if(id==='editor') setTimeout(setupEditor, 50);
+  // mark pinned
+  document.querySelectorAll('.pinned-app').forEach(p=>{ if(p.title===cfg.title) p.classList.add('running'); });
+  document.getElementById('start-menu').classList.remove('open');
+}
+
+function setupEditor() {
+  const ea = document.getElementById('editor-area');
+  const pos = document.getElementById('editor-pos');
+  const wc = document.getElementById('editor-wc');
+  if(!ea) return;
+  ea.addEventListener('keyup', () => {
+    if(pos) {
+      const text = ea.value.substring(0, ea.selectionStart);
+      const lines = text.split('\n');
+      pos.textContent = `Ln ${lines.length}, Col ${lines[lines.length-1].length+1}`;
+    }
+    if(wc) wc.textContent = `Words: ${ea.value.trim().split(/\s+/).filter(Boolean).length}`;
+  });
+}
+
+// ── KEYBOARD SHORTCUTS ──
+document.addEventListener('keydown', e => {
+  if(e.ctrlKey && e.key==='F1') { e.preventDefault(); openApp('files'); }
+  if(e.ctrlKey && e.key==='F2') { e.preventDefault(); openApp('terminal'); }
+  if(e.ctrlKey && e.key==='F3') { e.preventDefault(); openApp('editor'); }
+  if(e.key==='Super'||e.key==='Meta') { e.preventDefault(); toggleMenu(); }
+  if(e.altKey && e.key==='F4' && focused) { e.preventDefault(); closeWindow(focused); }
+});
+</script>
+</body>
+</html>
